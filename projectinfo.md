@@ -187,6 +187,7 @@ Team And Task Manager/
 
 ## 6. Unique Port & Production VPS Deployment (`manage.proaffiliaters.com`)
 
+- **GitHub Repository**: [https://github.com/hackerpushkar/Proaffiliaters-team-manager](https://github.com/hackerpushkar/Proaffiliaters-team-manager)
 - **Default Internal Port**: Configured to run on **Port 3050** (`next start -p 3050`).
 - **Production Domain**: `https://manage.proaffiliaters.com`
 - **Production VPS Stack**:
