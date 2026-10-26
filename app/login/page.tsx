@@ -27,10 +27,7 @@ import {
   Eye,
   EyeOff,
   ArrowRight,
-  Sparkles,
   AlertCircle,
-  KeyRound,
-  UserCheck,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 
@@ -66,12 +63,6 @@ export default function LoginPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQuickFill = (userEmail: string, userPass: string) => {
-    setEmail(userEmail);
-    setPassword(userPass);
-    setError(null);
   };
 
   return (
@@ -182,34 +173,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Founder Credentials 1-Click Helper */}
-          <div className="mt-6 pt-5 border-t border-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
-                <KeyRound size={12} className="text-primary" />
-                <span>Founder Login</span>
-              </span>
-              <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded font-medium">
-                1-Click
-              </span>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => handleQuickFill("admin@proaffiliaters.com", "Pushkar@9084#123")}
-              className="w-full text-left p-2.5 rounded-xl bg-muted/50 hover:bg-muted border border-border/60 hover:border-primary/40 transition-all text-xs"
-            >
-              <div className="font-semibold text-foreground flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <UserCheck size={13} className="text-emerald-500" />
-                  <span>Pushkar</span>
-                </div>
-                <span className="text-[10px] text-primary font-mono font-semibold">admin@proaffiliaters.com</span>
-              </div>
-              <div className="text-[11px] text-muted-foreground mt-0.5">Founder & Super Admin</div>
-            </button>
-          </div>
         </div>
 
         {/* Footer info */}
