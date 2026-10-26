@@ -3,13 +3,15 @@
  * HEADER BLOCK: lib/defaultData.ts — Default Initial Seed Data
  * ============================================================================
  * WHAT THIS FILE DOES:
- * Supplies realistic, high-fidelity initial data for the Proaffiliaters
- * ecosystem, seeded if the user's LocalStorage is fresh.
- * Features Major Tasks (e.g. "Make Prowasp Telegram Bot") with nested Minor Tasks
- * arranged strictly by priority order.
+ * Supplies clean, production-ready starting state for Proaffiliaters Team & Task Manager.
+ *
+ * PRODUCTION CLEAN SLATE RULES:
+ * - ONLY the single Founder & Super Admin account is provisioned.
+ * - ZERO dummy projects, ZERO dummy tasks, ZERO dummy features, ZERO dummy fixes.
+ * - All tasks and projects start clean for real team usage.
  *
  * WHY THIS FILE EXISTS:
- * Ensures the app immediately looks vibrant, functional, and production-ready.
+ * Ensures the system launches with pure, unpolluted data tailored for Founder Pushkar.
  *
  * HOW IT FITS INTO THE OVERALL WORKFLOW:
  * Imported by lib/store.tsx when initializing state.
@@ -18,479 +20,58 @@
 
 import { UpcomingFeature, OngoingProject, ProjectTask, FixUpdate, TeamMember, ProjectInvitation } from "./types";
 
+/**
+ * The single primary Founder & Super Admin account.
+ * Founder credentials and Super Admin credentials are identical.
+ */
 export const initialTeamMembers: TeamMember[] = [
   {
-    id: "tm-1",
-    name: "Pushkar (Super Admin)",
+    id: "founder-pushkar",
+    name: "Pushkar",
     email: "admin@proaffiliaters.com",
-    password: "Pushkar@9084#123", // Super Admin credential
-    role: "Lead Architect & Founder",
+    password: "Pushkar@9084#123", // Master Founder & Admin Credential
+    role: "Founder & Super Admin",
     avatar: "/founder.jpg",
     accessLevel: "admin",
     status: "active",
-    skills: ["System Architecture", "Next.js", "Telegram MTProto", "Affiliate APIs"],
-    joinedAt: "2026-01-01",
-    telegramHandle: "@pushkar_pro",
-    bio: "Founder & Chief Architect leading platform engineering, high-throughput bots, and deal monetization engines.",
-  },
-  {
-    id: "tm-2",
-    name: "Alex (Backend)",
-    email: "alex@proaffiliaters.com",
-    password: "alex123",
-    role: "Telegram & Worker Dev",
-    avatar: "/avatars/anime1.png",
-    accessLevel: "lead",
-    status: "active",
-    skills: ["Node.js", "Cheerio", "Puppeteer", "Redis Queues", "Python Scrapers"],
-    joinedAt: "2026-03-15",
-    telegramHandle: "@alex_backend",
-    bio: "Specializes in high-frequency scraping workers, reverse proxy rotation, and Amazon/Flipkart tag injectors.",
-  },
-  {
-    id: "tm-3",
-    name: "Rohan (Full Stack)",
-    email: "rohan@proaffiliaters.com",
-    password: "rohan123",
-    role: "Next.js & Frontend Engineer",
-    avatar: "/avatars/anime2.png",
-    accessLevel: "developer",
-    status: "active",
-    skills: ["React", "Next.js 14", "Tailwind CSS", "Framer Motion", "TypeScript"],
-    joinedAt: "2026-05-10",
-    telegramHandle: "@rohan_frontend",
-    bio: "Focuses on responsive user interfaces, real-time analytics graphs, and sleek mobile workflows.",
-  },
-  {
-    id: "tm-4",
-    name: "Sarah (DevOps)",
-    email: "sarah@proaffiliaters.com",
-    password: "sarah123",
-    role: "Infrastructure & Security",
-    avatar: "/avatars/anime3.png",
-    accessLevel: "developer",
-    status: "active",
-    skills: ["Docker", "Linux VPS", "Nginx", "PM2", "SSL/TLS", "Redis Clustering"],
-    joinedAt: "2026-06-01",
-    telegramHandle: "@sarah_devops",
-    bio: "Maintains 99.99% uptime, firewall policies, VPS clusters, and automated continuous delivery pipelines.",
-  },
-  {
-    id: "tm-5",
-    name: "Vikram (Affiliate Ops)",
-    email: "vikram@proaffiliaters.com",
-    password: "vikram123",
-    role: "Deals & API Specialist",
-    avatar: "/avatars/anime4.png",
-    accessLevel: "ops",
-    status: "active",
-    skills: ["Cuelinks API", "EarnKaro", "Commission Tiers", "Merchant Relations"],
-    joinedAt: "2026-07-20",
-    telegramHandle: "@vikram_affiliate",
-    bio: "Oversees direct merchant affiliate integration, payout monitoring, and deal taxonomy curation.",
-  },
-];
-
-export const initialProjects: OngoingProject[] = [
-  {
-    id: "proj-prowasp",
-    name: "Make Prowasp Telegram Bot",
-    description: "High-speed Telegram deal broadcasting bot with auto-formatting, affiliate tag replacement, and MTProto connection pooling.",
-    category: "Telegram Automation",
-    lead: "Pushkar (Founder)",
-    color: "#3b5bfa",
-    iconName: "Send",
-    status: "active",
-    createdAt: "2026-10-01",
-    teamMemberEmails: [
-      "pushkar@proaffiliaters.com",
-      "alex@proaffiliaters.com",
-      "sarah@proaffiliaters.com",
-    ],
-    pendingInvites: [],
-  },
-  {
-    id: "proj-webapp",
-    name: "Proaffiliaters Web Application",
-    description: "Primary client dashboard built with Next.js, hosting the deal converter, live analytics, channel manager, and subscription gateways.",
-    category: "Web Platform",
-    lead: "Rohan (Full Stack)",
-    color: "#7c3aed",
-    iconName: "Globe",
-    status: "active",
-    createdAt: "2026-10-05",
-    teamMemberEmails: [
-      "pushkar@proaffiliaters.com",
-      "rohan@proaffiliaters.com",
-    ],
-    pendingInvites: ["sarah@proaffiliaters.com"],
-  },
-  {
-    id: "proj-deals-worker",
-    name: "AutoPilot Deals Harvesting Daemon",
-    description: "Distributed background scrapers for Amazon, Flipkart, Myntra, and direct Cuelinks brand deals with duplicate deduplication.",
-    category: "Backend Engine",
-    lead: "Alex (Backend)",
-    color: "#06b6d4",
-    iconName: "Cpu",
-    status: "active",
-    createdAt: "2026-10-10",
-    teamMemberEmails: [
-      "alex@proaffiliaters.com",
-      "vikram@proaffiliaters.com",
-      "pushkar@proaffiliaters.com",
-    ],
-    pendingInvites: [],
-  },
-  {
-    id: "proj-pinterest",
-    name: "Pinterest Auto-Pin Studio (2:3 Vertical)",
-    description: "Automated canvas generator transforming product deals into aesthetic 2:3 vertical Pinterest pins with affiliate links.",
-    category: "Social Automation",
-    lead: "Sarah (DevOps)",
-    color: "#ef4444",
-    iconName: "Pin",
-    status: "planning",
-    createdAt: "2026-10-15",
-    teamMemberEmails: [
-      "sarah@proaffiliaters.com",
-      "pushkar@proaffiliaters.com",
-    ],
-    pendingInvites: [],
-  },
-];
-
-export const initialTasks: ProjectTask[] = [
-  // Minor Tasks for "Make Prowasp Telegram Bot" ordered strictly by priority rank
-  {
-    id: "task-pw-1",
-    projectId: "proj-prowasp",
-    name: "Implement MTProto Auto-Reconnect & Session Failover",
-    description: "When Telegram server drops socket connection during peak load, ensure the Telethon client performs exponential backoff and seamless session restore.",
-    priority: "P0",
-    priorityRank: 1,
-    status: "in_progress",
-    assignee: { name: "Alex (Backend)", avatar: "/avatars/anime1.png", role: "Telegram & Worker Dev" },
-    assigneeEmail: "alex@proaffiliaters.com",
-    dueDate: "2026-10-28",
-    tags: ["Telethon", "Socket", "Resilience"],
-    subtasks: [
-      { id: "st-1", title: "Add disconnect signal listener in worker.py", completed: true },
-      { id: "st-2", title: "Build exponential backoff retry loop (max 5 retries)", completed: true },
-      { id: "st-3", title: "Test with artificial network disconnection", completed: false },
-    ],
-    createdAt: "2026-10-20",
-  },
-  {
-    id: "task-pw-2",
-    projectId: "proj-prowasp",
-    name: "Add Support for Multi-Image Carousel Media Groups",
-    description: "Allow posting multiple high-resolution deal images as a single grouped media message instead of multiple individual messages.",
-    priority: "P1",
-    priorityRank: 2,
-    status: "todo",
-    assignee: { name: "Pushkar (Founder)", avatar: "/founder.jpg", role: "Lead Architect" },
-    assigneeEmail: "pushkar@proaffiliaters.com",
-    dueDate: "2026-10-31",
-    tags: ["Telegram API", "MediaGroup", "Formatting"],
-    subtasks: [
-      { id: "st-4", title: "Extract all product image gallery URLs", completed: false },
-      { id: "st-5", title: "Download and compress to under 5MB per image", completed: false },
-      { id: "st-6", title: "Attach caption strictly to the first media item", completed: false },
-    ],
-    createdAt: "2026-10-21",
-  },
-  {
-    id: "task-pw-3",
-    projectId: "proj-prowasp",
-    name: "Dynamic Affiliate Tag Tagging with Fallback Logic",
-    description: "Verify that all Amazon associate tags and Flipkart affiliate IDs replace correctly without corrupting query parameters.",
-    priority: "P1",
-    priorityRank: 3,
-    status: "in_progress",
-    assignee: { name: "Vikram (Affiliate Ops)", avatar: "/avatars/anime4.png", role: "Deals & API Specialist" },
-    assigneeEmail: "vikram@proaffiliaters.com",
-    dueDate: "2026-11-02",
-    tags: ["Affiliate", "Regex", "URL Parsing"],
-    subtasks: [
-      { id: "st-7", title: "Audit URL regex for shortened amzn.to links", completed: true },
-      { id: "st-8", title: "Unshorten destination before appending affiliate tag", completed: false },
-    ],
-    createdAt: "2026-10-22",
-  },
-  {
-    id: "task-pw-4",
-    projectId: "proj-prowasp",
-    name: "Custom Footer Signature & Telegram Channel Button Row",
-    description: "Allow creators to configure inline join buttons and custom disclaimer footer text for each forwarded deal post.",
-    priority: "P2",
-    priorityRank: 4,
-    status: "review",
-    assignee: { name: "Rohan (Full Stack)", avatar: "/avatars/anime2.png", role: "Next.js & Frontend" },
-    assigneeEmail: "rohan@proaffiliaters.com",
-    dueDate: "2026-11-05",
-    tags: ["UI", "InlineButtons", "Customizer"],
-    subtasks: [
-      { id: "st-9", title: "Build inline button JSON schema builder", completed: true },
-      { id: "st-10", title: "Preview bot post rendering in UI modal", completed: true },
-    ],
-    createdAt: "2026-10-23",
-  },
-  {
-    id: "task-pw-5",
-    projectId: "proj-prowasp",
-    name: "Add Hourly Deal Delivery Rate Limiter",
-    description: "Prevent Telegram flood-wait 429 errors by capping message frequency to 25 deals per channel per hour.",
-    priority: "P3",
-    priorityRank: 5,
-    status: "backlog",
-    assignee: { name: "Alex (Backend)", avatar: "/avatars/anime1.png", role: "Telegram & Worker Dev" },
-    assigneeEmail: "alex@proaffiliaters.com",
-    dueDate: "2026-11-10",
-    tags: ["RateLimit", "Queue", "Redis"],
-    subtasks: [
-      { id: "st-11", title: "Define leaky bucket rate limiter class", completed: false },
-    ],
-    createdAt: "2026-10-24",
-  },
-
-  // Minor Tasks for "Proaffiliaters Web Application"
-  {
-    id: "task-web-1",
-    projectId: "proj-webapp",
-    name: "Real-time Deal Forwarding Live Status Indicator",
-    description: "Provide websocket/polling badge in dashboard showing active status of all configured source-to-destination channels.",
-    priority: "P0",
-    priorityRank: 1,
-    status: "in_progress",
-    assignee: { name: "Rohan (Full Stack)", avatar: "/avatars/anime2.png", role: "Next.js & Frontend" },
-    assigneeEmail: "rohan@proaffiliaters.com",
-    dueDate: "2026-10-29",
-    tags: ["Next.js", "Websocket", "Realtime"],
-    subtasks: [
-      { id: "st-12", title: "Create API endpoint for bot heartbeat", completed: true },
-      { id: "st-13", title: "Render pulsing green/amber status badge", completed: true },
-    ],
-    createdAt: "2026-10-22",
-  },
-  {
-    id: "task-web-2",
-    projectId: "proj-webapp",
-    name: "Export Earnings & Click Analytics as PDF / CSV",
-    description: "Allow channel owners to download monthly affiliate earnings breakdown with conversion ratios.",
-    priority: "P2",
-    priorityRank: 2,
-    status: "todo",
-    assignee: { name: "Vikram (Affiliate Ops)", avatar: "/avatars/anime4.png", role: "Deals & API Specialist" },
-    assigneeEmail: "vikram@proaffiliaters.com",
-    dueDate: "2026-11-04",
-    tags: ["Reports", "CSV", "Analytics"],
-    subtasks: [],
-    createdAt: "2026-10-23",
-  },
-
-  // Minor Tasks for "AutoPilot Deals Harvesting Daemon"
-  {
-    id: "task-dh-1",
-    projectId: "proj-deals-worker",
-    name: "Bypass Bot Detection on Flash Sale Deal Pages",
-    description: "Implement automated rotating user-agent headers and proxy pool to scrape lightning deals without IP bans.",
-    priority: "P0",
-    priorityRank: 1,
-    status: "review",
-    assignee: { name: "Sarah (DevOps)", avatar: "/avatars/anime3.png", role: "Infrastructure & Security" },
-    assigneeEmail: "sarah@proaffiliaters.com",
-    dueDate: "2026-10-27",
-    tags: ["Scraper", "Proxy", "Security"],
-    subtasks: [
-      { id: "st-14", title: "Integrate residential proxy rotation", completed: true },
-      { id: "st-15", title: "Add browser fingerprint randomization", completed: true },
-    ],
-    createdAt: "2026-10-20",
-  },
-];
-
-export const initialInvitations: ProjectInvitation[] = [
-  {
-    id: "inv-demo-1",
-    projectId: "proj-webapp",
-    projectName: "Proaffiliaters Web Application",
-    projectColor: "#7c3aed",
-    inviterName: "Pushkar (Founder)",
-    inviterEmail: "pushkar@proaffiliaters.com",
-    inviteeEmail: "sarah@proaffiliaters.com",
-    status: "pending",
-    createdAt: "2026-10-25T10:00:00Z",
-  },
-  {
-    id: "inv-demo-2",
-    projectId: "proj-deals-worker",
-    projectName: "AutoPilot Deals Harvesting Daemon",
-    projectColor: "#06b6d4",
-    inviterName: "Alex (Backend)",
-    inviterEmail: "alex@proaffiliaters.com",
-    inviteeEmail: "rohan@proaffiliaters.com",
-    status: "pending",
-    createdAt: "2026-10-26T06:30:00Z",
-  },
-];
-
-export const initialFeatures: UpcomingFeature[] = [
-  {
-    id: "feat-101",
-    name: "AI Deal Headline & Discount Rewriter",
-    description: "Use an on-device lightweight LLM or Gemini Flash API to automatically rewrite raw dealer text into catchy, click-worthy emojis and high-urgency headlines.",
-    targetTimeline: "Q4 2026",
-    priority: "critical",
-    status: "ready_to_go",
-    author: "Pushkar (Founder)",
-    votes: 18,
-    hasVoted: true,
-    tags: ["AI", "Telegram", "Copywriting"],
-    points: [
-      { id: "pt-101-1", title: "Evaluate Gemini Flash 1.5 vs Llama-3-8B local inference latency", completed: true },
-      { id: "pt-101-2", title: "Design deal prompt template with % discount, brand, and FOMO emojis", completed: true },
-      { id: "pt-101-3", title: "Build fallback handler when API token limit or rate limit occurs", completed: false },
-      { id: "pt-101-4", title: "Benchmark copywriting click-through conversion increase (+15% target)", completed: false },
-    ],
-    documents: [
-      { id: "doc-101-1", name: "Gemini_Flash_Prompt_Architecture.pdf", url: "https://docs.proaffiliaters.internal/ai-copywriting-spec", type: "pdf", size: "1.2 MB", uploadedAt: "2026-10-19" },
-      { id: "doc-101-2", name: "A/B Conversion Rate Benchmark Sheet", url: "https://docs.google.com/spreadsheets/d/deal-ab-test", type: "link", size: "Cloud Doc", uploadedAt: "2026-10-21" },
-    ],
-    notes: "Tested prompt variants on 50 Amazon flash sales. Highest CTR achieved when price drop percentage is highlighted in the first 5 words.",
-    createdAt: "2026-10-18",
-  },
-  {
-    id: "feat-102",
-    name: "Automated WhatsApp Community Broadcast Engine",
-    description: "Bridge verified Telegram deal posts directly into WhatsApp Business Communities and broadcast channels without manual copying.",
-    targetTimeline: "Q1 2027",
-    priority: "high",
-    status: "in_progress",
-    author: "Rohan (Full Stack)",
-    votes: 14,
-    hasVoted: false,
-    tags: ["WhatsApp", "Multi-Channel", "Automation"],
-    points: [
-      { id: "pt-102-1", title: "Research WhatsApp Cloud API webhook throughput limits", completed: true },
-      { id: "pt-102-2", title: "Set up Meta Business Account verification and webhook token", completed: true },
-      { id: "pt-102-3", title: "Implement media payload converter (Telegram Photo to WhatsApp Media)", completed: false },
-      { id: "pt-102-4", title: "Implement auto-reconnect worker daemon with queue isolation", completed: false },
-    ],
-    documents: [
-      { id: "doc-102-1", name: "Meta_Cloud_API_RateLimits.pdf", url: "https://developers.facebook.com/docs/whatsapp/cloud-api", type: "pdf", size: "840 KB", uploadedAt: "2026-10-20" },
-    ],
-    notes: "Requires WhatsApp Business Template pre-approval for outbound messages outside 24h user window.",
-    createdAt: "2026-10-19",
-  },
-  {
-    id: "feat-103",
-    name: "Direct Cuelinks Brand Campaign Deal Auto-Syncer",
-    description: "Integrate Cuelinks API v3 to pull high-commission campaigns (Myntra, Ajio, Nykaa) directly into user templates with custom deep-links.",
-    targetTimeline: "Q4 2026",
-    priority: "high",
-    status: "research",
-    author: "Vikram (Affiliate Ops)",
-    votes: 11,
-    hasVoted: false,
-    tags: ["Affiliate API", "Cuelinks", "Campaigns"],
-    points: [
-      { id: "pt-103-1", title: "Test Cuelinks API v3 authentication and token renewal cycles", completed: true },
-      { id: "pt-103-2", title: "Map Merchant payout rates to prioritize top 10% highest margin deals", completed: false },
-      { id: "pt-103-3", title: "Build automated deep-link subid injector for user attribution", completed: false },
-    ],
-    documents: [
-      { id: "doc-103-1", name: "Cuelinks_API_v3_Documentation.pdf", url: "https://cuelinks.com/api/v3/docs", type: "pdf", size: "2.1 MB", uploadedAt: "2026-10-22" },
-      { id: "doc-103-2", name: "Q4 High-Commission Merchant Matrix", url: "https://notion.so/proaffiliaters/merchant-margins", type: "spec", size: "Notion Spec", uploadedAt: "2026-10-23" },
-    ],
-    notes: "API v3 returns campaign payout percentages in real time. Can filter only campaigns offering >8% payout.",
-    createdAt: "2026-10-21",
-  },
-  {
-    id: "feat-104",
-    name: "Telegram Multi-Session Rotation for Zero Account Bans",
-    description: "Pool up to 5 user phone sessions and rotate posting tasks so no single user account gets flagged for spam or rate limits by Telegram.",
-    targetTimeline: "Q1 2027",
-    priority: "medium",
-    status: "thinking",
-    author: "Alex (Backend)",
-    votes: 8,
-    hasVoted: false,
-    tags: ["Telegram", "Safety", "Accounts"],
-    points: [
-      { id: "pt-104-1", title: "Analyze Telegram peer flood ban triggers and cooldown periods", completed: false },
-      { id: "pt-104-2", title: "Design round-robin session pool manager in Redis", completed: false },
-    ],
-    documents: [
-      { id: "doc-104-1", name: "Telegram_Spam_Prevention_RFC.txt", url: "https://core.telegram.org/api/errors", type: "doc", size: "120 KB", uploadedAt: "2026-10-24" },
-    ],
-    notes: "Exploring session rotation using separate residential proxies per Telegram API ID.",
-    createdAt: "2026-10-23",
-  },
-];
-
-export const initialFixes: FixUpdate[] = [
-  {
-    id: "fix-301",
-    name: "Amazon PA-API 429 Too Many Requests Spike During Prime Hours",
-    description: "Product lookup API was hitting the 1 request/second threshold during major flash deals, causing deal metadata extraction to fail.",
-    affectedComponent: "Amazon Scraper Worker",
-    severity: "critical",
-    status: "deployed",
-    reportedBy: "Vikram (Affiliate Ops)",
-    assignee: "Sarah (DevOps)",
-    resolutionNotes: "Implemented Redis token bucket rate-limiter and added HTML fallback scraping when PA-API returns 429.",
-    versionTag: "v2.1.3",
-    createdAt: "2026-10-20",
-    resolvedAt: "2026-10-22",
-  },
-  {
-    id: "fix-302",
-    name: "Flipkart Lightning Deal Price Drop Parsing Regex Error",
-    description: "Flipkart updated their mobile web DOM classes for strikethrough price, causing the scraper to occasionally extract 0% discount.",
-    affectedComponent: "Flipkart Scraper",
-    severity: "major",
-    status: "fixing",
-    reportedBy: "Pushkar (Founder)",
-    assignee: "Alex (Backend)",
-    resolutionNotes: "Updated Cheerio CSS selectors to check `div[data-testid='selling-price']` and fallback JSON-LD script tags.",
-    versionTag: "v2.1.4",
-    createdAt: "2026-10-23",
-  },
-  {
-    id: "fix-303",
-    name: "Telegram MarkdownV2 Unescaped Underscore Syntax Error",
-    description: "When product titles contain usernames or underscores like `model_abc_pro`, Telegram rejects message with parse error.",
-    affectedComponent: "Prowasp Telegram Bot",
-    severity: "critical",
-    status: "verified",
-    reportedBy: "Alex (Backend)",
-    assignee: "Alex (Backend)",
-    resolutionNotes: "Added strict regex sanitizer escaping all reserved characters: `_`, `*`, `[`, `]`, `(`, `)`, `~`, `` ` ``, `>`, `#`, `+`, `-`, `=`, `|`, `{`, `}`, `.`, `!`.",
-    versionTag: "v2.1.4",
-    createdAt: "2026-10-22",
-  },
-  {
-    id: "fix-304",
-    name: "Dashboard Dark Mode Theme Flashing on Page Refresh",
-    description: "Next.js SSR initial render briefly displayed white background before reading localStorage dark theme state.",
-    affectedComponent: "Next.js Web Client",
-    severity: "minor",
-    status: "deployed",
-    reportedBy: "Rohan (Full Stack)",
-    assignee: "Rohan (Full Stack)",
-    resolutionNotes: "Injected inline blocking script in document head to apply `.dark` class before DOM paint.",
-    versionTag: "v2.1.2",
-    createdAt: "2026-10-18",
-    resolvedAt: "2026-10-19",
+    skills: ["System Architecture", "Next.js", "Telegram Automation", "Operations", "Fullstack"],
+    joinedAt: "2024-01-01T00:00:00.000Z",
+    telegramHandle: "@pushkar_founder",
+    bio: "Founder & Chief Architect of Proaffiliaters platform.",
   },
 ];
 
 /**
+ * 100% Clean Slate: No dummy/sample projects.
+ */
+export const initialProjects: OngoingProject[] = [];
+
+/**
+ * 100% Clean Slate: No dummy/sample tasks.
+ */
+export const initialTasks: ProjectTask[] = [];
+
+/**
+ * 100% Clean Slate: No dummy/sample upcoming features.
+ */
+export const initialFeatures: UpcomingFeature[] = [];
+
+/**
+ * 100% Clean Slate: No dummy/sample fixes or patches.
+ */
+export const initialFixes: FixUpdate[] = [];
+
+/**
+ * 100% Clean Slate: No dummy/sample invitations.
+ */
+export const initialInvitations: ProjectInvitation[] = [];
+
+/**
  * ============================================================================
- * FOOTER BLOCK: lib/defaultData.ts Implementation Notes & Caveats
+ * FOOTER BLOCK: lib/defaultData.ts Implementation Notes
  * ============================================================================
- * - Workflow: Injected into client state on first load if localStorage is empty.
- * - Caveats: All task priority ranks are 1-indexed integers for intuitive sorting.
+ * - Founder Account: Pushkar (admin@proaffiliaters.com / Pushkar@9084#123)
+ * - Access Level: "admin" (Level 5)
+ * - Clean Slate: Empty arrays ensure no toy data pollutes the production database.
  * ============================================================================
  */

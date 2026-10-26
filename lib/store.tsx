@@ -48,8 +48,8 @@ import {
   initialInvitations,
 } from "./defaultData";
 
-const STORAGE_KEY = "proaffiliaters_team_task_manager_v2";
-const SESSION_KEY = "proaffiliaters_session_user_v2";
+const STORAGE_KEY = "proaffiliaters_team_task_manager_v3";
+const SESSION_KEY = "proaffiliaters_session_user_v3";
 
 interface TaskStoreContextType {
   isLoaded: boolean;
@@ -162,10 +162,10 @@ function getStoredSession() {
 }
 
 export function TaskProvider({ children }: { children: React.ReactNode }) {
-  // Authentication State
+  // Authentication State: defaults to null so user MUST log in first
   const [currentUser, setCurrentUser] = useState<TeamMember | null>(() => {
     const s = getStoredSession();
-    return s && s.email ? s : initialTeamMembers[0];
+    return s && s.email ? s : null;
   });
   const [myTasksOnly, setMyTasksOnly] = useState<boolean>(false);
 

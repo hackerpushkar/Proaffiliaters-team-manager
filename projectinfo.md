@@ -150,9 +150,11 @@ Team And Task Manager/
 - **Attributes**: `id`, `name`, `email`, `password`, `role`, `avatar`, `accessLevel`, `status`, `skills`, `joinedAt`, `telegramHandle`, `bio`.
 
 ### Module 5: Employee Authentication Portal (`/login`)
-- **No Public Signup**: Explicitly designed as an internal employee system. Accounts and credentials can only be provisioned by Super Admins.
-- **Session Management**: Authenticates via `/api/auth/login`, persists the session in `localStorage` (`proaffiliaters_session_user_v2`), and protects root workspace access.
-- **1-Click Testing Presets**: Quick-fill credentials for demo roles (Pushkar Founder/Super Admin, Alex Bot Lead, Rohan Frontend, Sarah DevOps, Vikram Ops).
+- **Strict Mandatory Login Gate**: Unauthenticated visitors are strictly blocked from seeing the workspace and redirected to the login portal. `currentUser` defaults to `null` until valid login credentials are verified.
+- **Single Master Founder Account**: Only the Founder & Super Admin account is pre-provisioned in the system (`admin@proaffiliaters.com` / `Pushkar@9084#123`). All dummy employee demo accounts have been completely removed.
+- **Shared Credentials**: The same Founder credentials unlock both the Workspace (`/login`) and the Super Admin Console (`/admin`).
+- **100% Clean Slate**: 0 default projects, 0 default tasks, 0 default features, and 0 default fixes. The system launches with clean, unpolluted data.
+- **Session Management**: Authenticates via `/api/auth/login`, persists the session in `localStorage` (`proaffiliaters_session_user_v3`), and protects root workspace access.
 
 ### Module 6: Project Teammate Collaboration & Gmail Invitations Engine
 - **Gmail Invitations**: Project owners can invite colleagues by Gmail directly when creating projects (via `ProjectModal`) or from the project card via `+ Add Teammates` (`InviteTeammateModal`).

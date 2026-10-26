@@ -183,67 +183,32 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Credentials Helper */}
+          {/* Founder Credentials 1-Click Helper */}
           <div className="mt-6 pt-5 border-t border-border">
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
                 <KeyRound size={12} className="text-primary" />
-                <span>Quick Fill Demo Credentials</span>
+                <span>Founder Login</span>
               </span>
               <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded font-medium">
                 1-Click
               </span>
             </div>
 
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                type="button"
-                onClick={() => handleQuickFill("admin@proaffiliaters.com", "Pushkar@9084#123")}
-                className="text-left p-2 rounded-lg bg-muted/50 hover:bg-muted border border-border/60 hover:border-primary/40 transition-all text-[11px]"
-              >
-                <div className="font-semibold text-foreground flex items-center gap-1">
-                  <UserCheck size={11} className="text-emerald-500" />
+            <button
+              type="button"
+              onClick={() => handleQuickFill("admin@proaffiliaters.com", "Pushkar@9084#123")}
+              className="w-full text-left p-2.5 rounded-xl bg-muted/50 hover:bg-muted border border-border/60 hover:border-primary/40 transition-all text-xs"
+            >
+              <div className="font-semibold text-foreground flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <UserCheck size={13} className="text-emerald-500" />
                   <span>Pushkar</span>
                 </div>
-                <div className="text-[10px] text-muted-foreground">Founder & Super Admin</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill("alex@proaffiliaters.com", "alex123")}
-                className="text-left p-2 rounded-lg bg-muted/50 hover:bg-muted border border-border/60 hover:border-primary/40 transition-all text-[11px]"
-              >
-                <div className="font-semibold text-foreground flex items-center gap-1">
-                  <UserCheck size={11} className="text-primary" />
-                  <span>Alex</span>
-                </div>
-                <div className="text-[10px] text-muted-foreground">Telegram Bot Lead</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill("rohan@proaffiliaters.com", "rohan123")}
-                className="text-left p-2 rounded-lg bg-muted/50 hover:bg-muted border border-border/60 hover:border-primary/40 transition-all text-[11px]"
-              >
-                <div className="font-semibold text-foreground flex items-center gap-1">
-                  <UserCheck size={11} className="text-accent" />
-                  <span>Rohan</span>
-                </div>
-                <div className="text-[10px] text-muted-foreground">Next.js Frontend</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleQuickFill("sarah@proaffiliaters.com", "sarah123")}
-                className="text-left p-2 rounded-lg bg-muted/50 hover:bg-muted border border-border/60 hover:border-primary/40 transition-all text-[11px]"
-              >
-                <div className="font-semibold text-foreground flex items-center gap-1">
-                  <UserCheck size={11} className="text-cyan-500" />
-                  <span>Sarah</span>
-                </div>
-                <div className="text-[10px] text-muted-foreground">DevOps & Infra</div>
-              </button>
-            </div>
+                <span className="text-[10px] text-primary font-mono font-semibold">admin@proaffiliaters.com</span>
+              </div>
+              <div className="text-[11px] text-muted-foreground mt-0.5">Founder & Super Admin</div>
+            </button>
           </div>
         </div>
 
