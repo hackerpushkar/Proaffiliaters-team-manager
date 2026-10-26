@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-size: 16px;
+  --background: #f4f6fc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #3b5bfa;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2ff;
+  --secondary-foreground: #3b5bfa;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(99, 102, 241, 0.12);
+  --input: #ffffff;
+  --input-background: #f8fafc;
+  --ring: #3b5bfa;
+  --radius: 0.75rem;
+  --sidebar: #ffffff;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #3b5bfa;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f8faff;
+  --sidebar-accent-foreground: #3b5bfa;
+  --sidebar-border: rgba(99, 102, 241, 0.1);
+  --sidebar-ring: #3b5bfa;
+}
+
+.dark {
+  --background: #0b0f28;
+  --foreground: #f1f5f9;
+  --card: #111738;
+  --card-foreground: #f1f5f9;
+  --popover: #111738;
+  --popover-foreground: #f1f5f9;
+  --primary: #4f6ef7;
+  --primary-foreground: #ffffff;
+  --secondary: #1a2350;
+  --secondary-foreground: #a5b4fc;
+  --muted: #161e44;
+  --muted-foreground: #94a3b8;
+  --accent: #8b5cf6;
+  --accent-foreground: #ffffff;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: rgba(99, 102, 241, 0.18);
+  --input: rgba(99, 102, 241, 0.12);
+  --input-background: #141b3e;
+  --ring: #4f6ef7;
+  --sidebar: #090d24;
+  --sidebar-foreground: #f1f5f9;
+  --sidebar-primary: #4f6ef7;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #151d45;
+  --sidebar-accent-foreground: #a5b4fc;
+  --sidebar-border: rgba(99, 102, 241, 0.14);
+  --sidebar-ring: #4f6ef7;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-dm-sans), "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(59, 91, 250, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(59, 91, 250, 0.2);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 91, 250, 0.4);
+}
+
+.dark * {
+  scrollbar-color: rgba(147, 151, 175, 0.25) transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(147, 151, 175, 0.25);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 110, 247, 0.5);
+}
+
+/* Glassmorphism Classes */
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 4px 20px -2px rgba(59, 91, 250, 0.06);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-card:hover {
+  border-color: rgba(59, 91, 250, 0.3);
+  box-shadow: 0 8px 30px rgba(59, 91, 250, 0.12);
+}
+
+.dark .glass-card {
+  background: rgba(17, 22, 64, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(79, 110, 247, 0.2);
+  box-shadow: none;
+}
+
+.dark .glass-card:hover {
+  border-color: rgba(124, 58, 237, 0.4);
+  box-shadow: 0 10px 30px rgba(79, 110, 247, 0.18);
+}
+
+/* Gradient Text Helpers */
+.gradient-text-primary {
+  background: linear-gradient(135deg, #1a1f5e 0%, #3b5bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text-primary {
+  background: linear-gradient(135deg, #ffffff 0%, #a0aee8 50%, #4f6ef7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gradient-text-accent {
+  background: linear-gradient(135deg, #7c3aed 0%, #3b5bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.dark .gradient-text-accent {
+  background: linear-gradient(135deg, #c084fc 0%, #7c3aed 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
