@@ -26,6 +26,7 @@ export interface IFeatureDocument extends Document {
   documents: Array<{ id: string; name: string; url: string; type?: string; size?: string; uploadedAt?: string }>;
   notes?: string;
   convertedProjectId?: string;
+  order?: number;
   createdAt: string;
   updatedAt?: string;
 }
@@ -37,6 +38,7 @@ const FeatureSchema = new Schema<IFeatureDocument>(
     description: { type: String, default: "" },
     targetTimeline: { type: String, default: "Q4 2026" },
     priority: { type: String, enum: ["low", "medium", "high", "critical"], default: "medium" },
+    order: { type: Number, default: 0, index: true },
     status: {
       type: String,
       enum: ["thinking", "research", "ready_to_go", "future_build", "in_progress", "completed", "idea", "approved"],

@@ -29,9 +29,9 @@ export async function GET() {
     await connectToDatabase();
 
     const [projects, tasks, features, fixes, teamMembers, invitations] = await Promise.all([
-      ProjectModel.find({}).lean(),
+      ProjectModel.find({}).sort({ order: 1, createdAt: -1 }).lean(),
       TaskModel.find({}).sort({ priorityRank: 1 }).lean(),
-      FeatureModel.find({}).sort({ votes: -1 }).lean(),
+      FeatureModel.find({}).sort({ order: 1, createdAt: -1 }).lean(),
       FixModel.find({}).sort({ createdAt: -1 }).lean(),
       TeamMemberModel.find({}).sort({ createdAt: 1 }).lean(),
       ProjectInvitationModel.find({}).sort({ createdAt: -1 }).lean(),

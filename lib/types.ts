@@ -57,6 +57,7 @@ export interface UpcomingFeature {
   documents?: FeatureDocument[];
   notes?: string;
   convertedProjectId?: string;
+  order?: number; // Custom drag-and-drop position order
   createdAt: string;
   updatedAt?: string;
 }
@@ -72,6 +73,7 @@ export interface OngoingProject {
   color: string; // Hex or gradient accent
   iconName?: string;
   status: ProjectStatus;
+  order?: number; // Custom drag-and-drop position order
   createdAt: string;
   teamMemberEmails?: string[]; // Teammates joined to this project
   pendingInvites?: string[]; // Pending Gmail invites

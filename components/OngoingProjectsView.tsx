@@ -5,25 +5,27 @@
  * WHAT THIS FILE DOES:
  * Implements the two-tier Ongoing Projects architecture:
  * Tier 1 (Overview Hub): Clean, aesthetic cards showing Project Name, Lead info,
- *   Teammates roster, progress bar, and a prominent "Continue Workspace →" button.
+ *   Teammates roster, progress bar, 9-dot drag handle (Grip) for vertical reordering,
+ *   On Hold (Paused) toggle controls and status filtering, and a prominent "Continue Workspace →" button.
  * Tier 2 (Dedicated Project Workspace): Full-page workspace for a selected project
- *   with "← Back to All Projects" breadcrumbs, Multi-View Switcher (Hierarchy Tree,
- *   Agile Kanban Board, Table Grid), Priority Reordering (▲/▼), Subtask Checklists,
- *   and Rapid Inline Task Creation.
+ *   with "← Back to All Projects" breadcrumbs, On Hold banner & resume triggers,
+ *   Multi-View Switcher (Hierarchy Tree, Agile Kanban Board, Table Grid), Priority
+ *   Reordering (▲/▼), Subtask Checklists, and Rapid Inline Task Creation.
  *
  * WHY THIS FILE EXISTS:
- * Fulfills user requirement: "like upcoming feature also make this for project in
- * separate page... show project name and who lead then Continue Button then make
- * full page include kanban tree and other all features in separate page so ui looks more cool".
+ * Fulfills user requirements:
+ * - Two-tier workspace isolation with continue navigation
+ * - 9-dot drag handle container repositioning
+ * - Option to put projects On Hold (pause sprint deliverables) and resume them.
  *
  * HOW IT FITS INTO THE OVERALL WORKFLOW:
- * Interacts with useTaskStore (selectedProjectId, projects, tasks, etc.).
+ * Interacts with useTaskStore (selectedProjectId, projects, tasks, reorderProjects, updateProject, etc.).
  * ============================================================================
  */
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Layers,
   Plus,
@@ -61,10 +63,14 @@ import {
   Globe,
   Pin,
   Zap,
+  Grip,
+  Pause,
+  Play,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 import { OngoingProject, ProjectTask, TaskPriority, TaskStatus } from "@/lib/types";
 import { InviteTeammateModal } from "@/components/InviteTeammateModal";
+import { TaskSlideOverDrawer } from "@/components/TaskSlideOverDrawer";
 
 interface OngoingProjectsViewProps {
   onOpenAddTaskModal: (projectId?: string) => void;
@@ -88,7 +94,9 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
     teamMembers,
     selectedProjectId,
     setSelectedProjectId,
+    reorderProjects,
     reorderTaskPriority,
+    reorderTaskPosition,
     moveTaskStatus,
     toggleSubtask,
     deleteTask,
@@ -104,9 +112,25 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
   // Invite Teammate modal state
   const [inviteModalProject, setInviteModalProject] = useState<OngoingProject | null>(null);
 
+  // Active task for Slide-Over Drawer ("Task Slider")
+  const [activeDrawerTaskId, setActiveDrawerTaskId] = useState<string | null>(null);
+
+  // Drag and drop task reordering states
+  const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null);
+  const [dragOverTaskId, setDragOverTaskId] = useState<string | null>(null);
+  const [taskDropPosition, setTaskDropPosition] = useState<"before" | "after" | null>(null);
+  const taskDragFromHandle = useRef<boolean>(false);
+
+  // Drag and drop project reordering states
+  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+  const [dragOverProjectId, setDragOverProjectId] = useState<string | null>(null);
+  const [projectDropPosition, setProjectDropPosition] = useState<"before" | "after" | null>(null);
+  const projectDragFromHandle = useRef<boolean>(false);
+
   // Filters State
   const [showFilterPanel, setShowFilterPanel] = useState<boolean>(false);
   const [showClosedProjects, setShowClosedProjects] = useState<boolean>(false);
+  const [projectStatusFilter, setProjectStatusFilter] = useState<"all" | "active" | "paused" | "completed">("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
@@ -239,11 +263,24 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
     return Array.from(cats);
   }, [projects]);
 
+  // Counts of held projects
+  const holdProjectsCount = useMemo(() => {
+    return projects.filter((p) => p.status === "paused").length;
+  }, [projects]);
+
   // Overview filtered projects list
   const overviewProjects = useMemo(() => {
     return projects.filter((p) => {
-      if (!showClosedProjects && p.status === "completed") return false;
+      // Status filter
+      if (projectStatusFilter === "active" && (p.status === "paused" || p.status === "completed")) return false;
+      if (projectStatusFilter === "paused" && p.status !== "paused") return false;
+      if (projectStatusFilter === "completed" && p.status !== "completed") return false;
+      if (projectStatusFilter === "all" && !showClosedProjects && p.status === "completed") return false;
+
+      // Category filter
       if (categoryFilter !== "all" && p.category !== categoryFilter) return false;
+
+      // Search query filter
       if (searchQuery) {
         const q = searchQuery.toLowerCase();
         const matchesName = p.name.toLowerCase().includes(q);
@@ -253,7 +290,7 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
       }
       return true;
     });
-  }, [projects, showClosedProjects, categoryFilter, searchQuery]);
+  }, [projects, projectStatusFilter, showClosedProjects, categoryFilter, searchQuery]);
 
   // Global KPIs across active projects
   const activeProjectsCount = projects.filter((p) => p.status !== "completed").length;
@@ -294,6 +331,27 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
           </button>
 
           <div className="flex items-center gap-2">
+            {/* Hold / Resume Project */}
+            {focusedProject.status === "paused" ? (
+              <button
+                onClick={() => updateProject(focusedProject.id, { status: "active" })}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center gap-1.5"
+                title="Resume project sprint"
+              >
+                <Play size={14} className="fill-current" />
+                <span>Resume Project</span>
+              </button>
+            ) : !isClosed ? (
+              <button
+                onClick={() => updateProject(focusedProject.id, { status: "paused" })}
+                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center gap-1.5"
+                title="Put this project on hold"
+              >
+                <Pause size={14} className="fill-current" />
+                <span>Put On Hold</span>
+              </button>
+            ) : null}
+
             {/* Close / Reopen Project */}
             {isClosed ? (
               <button
@@ -328,6 +386,23 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
           </div>
         </div>
 
+        {/* On Hold Notification Ribbon if paused */}
+        {focusedProject.status === "paused" && (
+          <div className="flex items-center justify-between p-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs">
+            <div className="flex items-center gap-2.5 text-xs font-semibold">
+              <Pause size={15} className="fill-current shrink-0 text-amber-600 dark:text-amber-400" />
+              <span>This project is currently <strong>On Hold</strong>. Sprint tasks and deliverables are paused.</span>
+            </div>
+            <button
+              onClick={() => updateProject(focusedProject.id, { status: "active" })}
+              className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 shadow-xs transition-colors shrink-0 flex items-center gap-1"
+            >
+              <Play size={12} className="fill-current" />
+              <span>Resume Sprint</span>
+            </button>
+          </div>
+        )}
+
         {/* Focused Project Header Banner */}
         <div className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden">
           <div
@@ -345,15 +420,22 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   {focusedProject.category}
                 </span>
 
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                    isClosed
-                      ? "bg-muted text-muted-foreground border-border"
-                      : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                  }`}
-                >
-                  {isClosed ? "Archived" : "Active Sprint"}
-                </span>
+                {focusedProject.status === "paused" ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shadow-xs">
+                    <Pause size={10} className="fill-current" />
+                    <span>On Hold</span>
+                  </span>
+                ) : (
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                      isClosed
+                        ? "bg-muted text-muted-foreground border-border"
+                        : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                    }`}
+                  >
+                    {isClosed ? "Archived" : "Active Sprint"}
+                  </span>
+                )}
 
                 <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                   <User size={12} />
@@ -552,13 +634,105 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   return (
                     <div
                       key={task.id}
-                      className="flex flex-col rounded-xl bg-card border border-border hover:border-primary/40 shadow-xs transition-all overflow-hidden"
+                      draggable
+                      onDragStart={(e) => {
+                        if (!taskDragFromHandle.current) {
+                          e.preventDefault();
+                          return;
+                        }
+                        setDraggedTaskId(task.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", task.id);
+                      }}
+                      onDragEnd={() => {
+                        taskDragFromHandle.current = false;
+                        setDraggedTaskId(null);
+                        setDragOverTaskId(null);
+                        setTaskDropPosition(null);
+                      }}
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        if (!draggedTaskId || draggedTaskId === task.id) return;
+                        e.dataTransfer.dropEffect = "move";
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const midY = rect.top + rect.height / 2;
+                        const isAbove = e.clientY < midY;
+                        const pos = isAbove ? "before" : "after";
+                        if (dragOverTaskId !== task.id || taskDropPosition !== pos) {
+                          setDragOverTaskId(task.id);
+                          setTaskDropPosition(pos);
+                        }
+                      }}
+                      onDragLeave={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                          if (dragOverTaskId === task.id) {
+                            setDragOverTaskId(null);
+                            setTaskDropPosition(null);
+                          }
+                        }
+                      }}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!draggedTaskId || draggedTaskId === task.id) return;
+                        reorderTaskPosition(draggedTaskId, task.id, taskDropPosition || "before");
+                        taskDragFromHandle.current = false;
+                        setDraggedTaskId(null);
+                        setDragOverTaskId(null);
+                        setTaskDropPosition(null);
+                      }}
+                      className={`relative flex flex-col rounded-xl bg-card border transition-all overflow-hidden ${
+                        draggedTaskId === task.id
+                          ? "opacity-30 scale-[0.99] border-dashed border-primary shadow-inner"
+                          : dragOverTaskId === task.id
+                          ? taskDropPosition === "before"
+                            ? "border-primary shadow-md ring-2 ring-primary/40 -translate-y-0.5"
+                            : "border-primary shadow-md ring-2 ring-primary/40 translate-y-0.5"
+                          : "border-border hover:border-primary/40 shadow-xs"
+                      }`}
                     >
+                      {/* Drop indicator bar on top */}
+                      {dragOverTaskId === task.id && taskDropPosition === "before" && (
+                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-t-xl z-20 animate-pulse" />
+                      )}
+                      {/* Drop indicator bar on bottom */}
+                      {dragOverTaskId === task.id && taskDropPosition === "after" && (
+                        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-b-xl z-20 animate-pulse" />
+                      )}
+
                       <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 gap-3">
-                        {/* Task Title & Priority Rank */}
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                        {/* Task Title & 9-Dot Drag Handle & Priority Rank */}
+                        <div
+                          onClick={() => {
+                            if (!draggedTaskId) setActiveDrawerTaskId(task.id);
+                          }}
+                          className="flex items-center gap-2.5 flex-1 min-w-0 cursor-pointer group/title"
+                        >
+                          {/* 9-Dot Drag Handle Area */}
+                          <div
+                            data-drag-handle="true"
+                            draggable={false}
+                            onMouseDown={() => {
+                              taskDragFromHandle.current = true;
+                            }}
+                            onMouseUp={() => {
+                              taskDragFromHandle.current = false;
+                            }}
+                            onTouchStart={() => {
+                              taskDragFromHandle.current = true;
+                            }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                            }}
+                            className="flex items-center justify-center w-7 h-7 -ml-1 rounded-lg text-muted-foreground/40 hover:text-primary hover:bg-primary/10 active:bg-primary/20 cursor-grab active:cursor-grabbing transition-all shrink-0 self-center group/handle border border-transparent hover:border-primary/20 select-none"
+                            title="Hold and drag up or down to reposition priority rank"
+                            aria-label="Reorder task"
+                          >
+                            <Grip size={15} className="group-hover/handle:scale-110 group-active/handle:scale-95 transition-transform" />
+                          </div>
+
                           {/* Reorder Buttons */}
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                             <span className="font-mono font-bold text-xs text-primary w-6 text-center">
                               #{task.priorityRank}
                             </span>
@@ -587,7 +761,7 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                           </span>
 
                           <span
-                            className={`text-xs sm:text-sm font-semibold truncate ${
+                            className={`text-xs sm:text-sm font-semibold truncate group-hover/title:text-primary transition-colors ${
                               task.status === "done" ? "line-through text-muted-foreground" : "text-foreground"
                             }`}
                           >
@@ -739,7 +913,8 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                         return (
                           <div
                             key={task.id}
-                            className="p-3 rounded-lg bg-card border border-border hover:border-primary/40 shadow-xs flex flex-col gap-2 transition-all"
+                            onClick={() => setActiveDrawerTaskId(task.id)}
+                            className="p-3 rounded-lg bg-card border border-border hover:border-primary/40 shadow-xs flex flex-col gap-2 transition-all cursor-pointer group hover:shadow-sm"
                           >
                             <div className="flex items-center justify-between text-xs">
                               <span className="font-mono font-bold text-primary">#{task.priorityRank}</span>
@@ -747,13 +922,14 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                                 {task.priority}
                               </span>
                             </div>
-                            <h4 className="text-xs font-bold text-foreground leading-snug">{task.name}</h4>
+                            <h4 className="text-xs font-bold text-foreground leading-snug group-hover:text-primary transition-colors">{task.name}</h4>
                             <div className="flex items-center justify-between pt-1 border-t border-border/60 text-xs text-muted-foreground">
                               <span>{task.assignee.name.split(" ")[0]}</span>
                               <select
                                 value={task.status}
+                                onClick={(e) => e.stopPropagation()}
                                 onChange={(e) => moveTaskStatus(task.id, e.target.value as TaskStatus)}
-                                className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-bold"
+                                className="text-[10px] bg-muted px-1.5 py-0.5 rounded font-bold cursor-pointer"
                               >
                                 <option value="backlog">Backlog</option>
                                 <option value="todo">To Do</option>
@@ -792,19 +968,23 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                 {projectTasks.map((task) => {
                   const priorityInfo = getPriorityBadge(task.priority);
                   return (
-                    <tr key={task.id} className="hover:bg-muted/20 transition-colors">
+                    <tr
+                      key={task.id}
+                      onClick={() => setActiveDrawerTaskId(task.id)}
+                      className="hover:bg-muted/30 transition-colors cursor-pointer group"
+                    >
                       <td className="py-2.5 px-3.5 font-mono font-bold text-primary">#{task.priorityRank}</td>
                       <td className="py-2.5 px-3.5">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${priorityInfo.class}`}>
                           {task.priority}
                         </span>
                       </td>
-                      <td className="py-2.5 px-3.5 font-semibold text-foreground">{task.name}</td>
-                      <td className="py-2.5 px-3.5">
+                      <td className="py-2.5 px-3.5 font-semibold text-foreground group-hover:text-primary transition-colors">{task.name}</td>
+                      <td className="py-2.5 px-3.5" onClick={(e) => e.stopPropagation()}>
                         <select
                           value={task.status}
                           onChange={(e) => moveTaskStatus(task.id, e.target.value as TaskStatus)}
-                          className={`px-2 py-0.5 text-xs font-bold rounded-lg border ${getStatusBadge(task.status)}`}
+                          className={`px-2 py-0.5 text-xs font-bold rounded-lg border ${getStatusBadge(task.status)} cursor-pointer`}
                         >
                           <option value="backlog">Backlog</option>
                           <option value="todo">To Do</option>
@@ -815,7 +995,7 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                       </td>
                       <td className="py-2.5 px-3.5">{task.assignee.name}</td>
                       <td className="py-2.5 px-3.5 text-muted-foreground">{task.dueDate || "-"}</td>
-                      <td className="py-2.5 px-3.5 text-right">
+                      <td className="py-2.5 px-3.5 text-right" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={() => onOpenEditTaskModal(task)}
                           className="p-1 rounded text-muted-foreground hover:text-foreground mr-1"
@@ -907,6 +1087,60 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
       {/* Filter and Category Ribbon */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border shadow-xs">
         <div className="flex flex-wrap items-center gap-2">
+          {/* Status Tabs */}
+          <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60">
+            <button
+              onClick={() => setProjectStatusFilter("all")}
+              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                projectStatusFilter === "all"
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              All
+            </button>
+            <button
+              onClick={() => setProjectStatusFilter("active")}
+              className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                projectStatusFilter === "active"
+                  ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>⚡ Active</span>
+            </button>
+            <button
+              onClick={() => setProjectStatusFilter("paused")}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                projectStatusFilter === "paused"
+                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs border border-amber-500/30 font-extrabold"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>⏸ On Hold</span>
+              {holdProjectsCount > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                  {holdProjectsCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setProjectStatusFilter("completed");
+                setShowClosedProjects(true);
+              }}
+              className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                projectStatusFilter === "completed"
+                  ? "bg-card text-foreground shadow-xs border border-border"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span>📦 Archived</span>
+            </button>
+          </div>
+
+          <div className="h-4 w-[1px] bg-border mx-1 hidden sm:block" />
+
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
             <Filter size={14} />
             <span className="font-medium">Category:</span>
@@ -941,7 +1175,12 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
 
         {/* Closed Projects Toggle */}
         <button
-          onClick={() => setShowClosedProjects(!showClosedProjects)}
+          onClick={() => {
+            setShowClosedProjects(!showClosedProjects);
+            if (showClosedProjects && projectStatusFilter === "completed") {
+              setProjectStatusFilter("all");
+            }
+          }}
           className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
             showClosedProjects
               ? "bg-muted text-foreground border-primary/40"
@@ -985,52 +1224,152 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
             return (
               <div
                 key={proj.id}
-                onClick={() => setSelectedProjectId(proj.id)}
-                className="group relative flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card border border-border hover:border-primary/50 shadow-xs hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+                draggable
+                onDragStart={(e) => {
+                  if (!projectDragFromHandle.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setDraggedProjectId(proj.id);
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", proj.id);
+                }}
+                onDragEnd={() => {
+                  projectDragFromHandle.current = false;
+                  setDraggedProjectId(null);
+                  setDragOverProjectId(null);
+                  setProjectDropPosition(null);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!draggedProjectId || draggedProjectId === proj.id) return;
+                  e.dataTransfer.dropEffect = "move";
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const midY = rect.top + rect.height / 2;
+                  const isAbove = e.clientY < midY;
+                  const pos = isAbove ? "before" : "after";
+                  if (dragOverProjectId !== proj.id || projectDropPosition !== pos) {
+                    setDragOverProjectId(proj.id);
+                    setProjectDropPosition(pos);
+                  }
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    if (dragOverProjectId === proj.id) {
+                      setDragOverProjectId(null);
+                      setProjectDropPosition(null);
+                    }
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!draggedProjectId || draggedProjectId === proj.id) return;
+                  reorderProjects(draggedProjectId, proj.id, projectDropPosition || "before");
+                  projectDragFromHandle.current = false;
+                  setDraggedProjectId(null);
+                  setDragOverProjectId(null);
+                  setProjectDropPosition(null);
+                }}
+                onClick={() => {
+                  if (draggedProjectId) return;
+                  setSelectedProjectId(proj.id);
+                }}
+                className={`group relative flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card border shadow-xs transition-all duration-300 cursor-pointer overflow-hidden ${
+                  draggedProjectId === proj.id
+                    ? "opacity-30 scale-[0.99] border-dashed border-primary shadow-inner"
+                    : dragOverProjectId === proj.id
+                    ? projectDropPosition === "before"
+                      ? "border-primary shadow-md ring-2 ring-primary/40 -translate-y-0.5"
+                      : "border-primary shadow-md ring-2 ring-primary/40 translate-y-0.5"
+                    : "border-border hover:border-primary/50 hover:shadow-lg"
+                }`}
               >
+                {/* Drop indicator bar on top */}
+                {dragOverProjectId === proj.id && projectDropPosition === "before" && (
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-t-2xl z-20 animate-pulse" />
+                )}
+                {/* Drop indicator bar on bottom */}
+                {dragOverProjectId === proj.id && projectDropPosition === "after" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-b-2xl z-20 animate-pulse" />
+                )}
+
                 {/* Left Accent indicator line with project color */}
                 <div
                   className="absolute left-0 top-0 bottom-0 w-1.5 transition-all"
                   style={{ backgroundColor: proj.color || "#4f6ef7" }}
                 />
 
-                {/* Left / Main info */}
-                <div className="flex-1 min-w-0 space-y-2 pl-1 sm:pl-2">
-                  {/* Category, Status & Lead badges */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-xs"
-                      style={{ backgroundColor: proj.color || "#4f6ef7" }}
-                    >
-                      {proj.category}
-                    </span>
-
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                        isCompleted
-                          ? "bg-muted text-muted-foreground border-border"
-                          : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                      }`}
-                    >
-                      {isCompleted ? "Closed" : "Active"}
-                    </span>
-
-                    {/* Lead Info Pill */}
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-muted/60 text-[11px] font-semibold text-muted-foreground border border-border/40">
-                      <User size={12} className="text-primary" />
-                      <span>Lead: <strong className="text-foreground">{proj.lead}</strong></span>
-                    </div>
+                {/* Left region: 9-Dot Drag Handle + Main info */}
+                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 flex-1 min-w-0 pl-1 sm:pl-2">
+                  {/* 9-Dot Drag Handle (3x3 dots grip icon) */}
+                  <div
+                    data-drag-handle="true"
+                    draggable={false}
+                    onMouseDown={() => {
+                      projectDragFromHandle.current = true;
+                    }}
+                    onMouseUp={() => {
+                      projectDragFromHandle.current = false;
+                    }}
+                    onTouchStart={() => {
+                      projectDragFromHandle.current = true;
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 active:bg-primary/20 cursor-grab active:cursor-grabbing transition-all shrink-0 self-start sm:self-center group/handle border border-transparent hover:border-primary/20 select-none"
+                    title="Hold and drag up or down to reposition"
+                    aria-label="Reorder project"
+                  >
+                    <Grip size={18} className="group-hover/handle:scale-110 group-active/handle:scale-95 transition-transform" />
                   </div>
 
-                  {/* Title & Description */}
-                  <div>
-                    <h3 className="text-base sm:text-lg font-heading font-extrabold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                      <span>{proj.name}</span>
-                      <ChevronRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-                      {proj.description || "No project description provided."}
-                    </p>
+                  {/* Main Content Block */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* Category, Status & Lead badges */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-xs"
+                        style={{ backgroundColor: proj.color || "#4f6ef7" }}
+                      >
+                        {proj.category}
+                      </span>
+
+                      {proj.status === "paused" ? (
+                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shadow-xs">
+                          <Pause size={10} className="fill-current" />
+                          <span>On Hold</span>
+                        </span>
+                      ) : (
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
+                            isCompleted
+                              ? "bg-muted text-muted-foreground border-border"
+                              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                          }`}
+                        >
+                          {isCompleted ? "Closed" : "Active"}
+                        </span>
+                      )}
+
+                      {/* Lead Info Pill */}
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-muted/60 text-[11px] font-semibold text-muted-foreground border border-border/40">
+                        <User size={12} className="text-primary" />
+                        <span>Lead: <strong className="text-foreground">{proj.lead}</strong></span>
+                      </div>
+                    </div>
+
+                    {/* Title & Description */}
+                    <div>
+                      <h3 className="text-base sm:text-lg font-heading font-extrabold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                        <span>{proj.name}</span>
+                        <ChevronRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                        {proj.description || "No project description provided."}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
@@ -1145,6 +1484,13 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
         onClose={() => setInviteModalProject(null)}
         project={inviteModalProject}
       />
+
+      {/* Task Slide-Over Drawer ("Task Slider") */}
+      <TaskSlideOverDrawer
+        taskId={activeDrawerTaskId}
+        onClose={() => setActiveDrawerTaskId(null)}
+        onOpenEditModal={(task) => onOpenEditTaskModal(task)}
+      />
     </div>
   );
 };
@@ -1154,6 +1500,9 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
  * FOOTER BLOCK: components/OngoingProjectsView.tsx Implementation Notes
  * ============================================================================
  * - Workflow: Two-tier architecture with clean Landing Hub cards & full workspace.
+ * - Task Slider: Interactive right slide-over drawer for viewing/editing tasks & subtasks.
+ * - 9-Dot Task Reorder: Vertical drag-and-drop on tasks with priority rank re-sequencing.
+ * - Project Hold: Auto-hold rule enforces single active project with dedicated filter tabs.
  * - Navigation: setSelectedProjectId(null) returns to Hub; continue button opens workspace.
  * - Views: Tree, Kanban, and Table modes isolated per project workspace.
  * ============================================================================

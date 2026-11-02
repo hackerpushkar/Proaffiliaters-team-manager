@@ -22,6 +22,7 @@ export interface IProjectDocument extends Document {
   color: string;
   iconName?: string;
   status: string;
+  order?: number;
   createdAt: string;
   teamMemberEmails: string[];
   pendingInvites: string[];
@@ -36,6 +37,7 @@ const ProjectSchema = new Schema<IProjectDocument>(
     lead: { type: String, required: true },
     color: { type: String, default: "#3b5bfa" },
     iconName: { type: String, default: "Folder" },
+    order: { type: Number, default: 0, index: true },
     status: {
       type: String,
       enum: ["active", "planning", "paused", "completed"],

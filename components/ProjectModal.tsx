@@ -174,19 +174,33 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
             </div>
 
             <div>
-              <label className="block font-semibold text-foreground mb-1">Project Lead:</label>
+              <label className="block font-semibold text-foreground mb-1">Project Status:</label>
               <select
-                value={lead}
-                onChange={(e) => setLead(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-semibold"
               >
-                {teamMembers.map((m) => (
-                  <option key={m.id} value={m.name}>
-                    {m.name}
-                  </option>
-                ))}
+                <option value="active">⚡ Active Sprint</option>
+                <option value="paused">⏸ On Hold (Paused)</option>
+                <option value="planning">📋 Planning</option>
+                <option value="completed">📦 Completed / Closed</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block font-semibold text-foreground mb-1">Project Lead:</label>
+            <select
+              value={lead}
+              onChange={(e) => setLead(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+            >
+              {teamMembers.map((m) => (
+                <option key={m.id} value={m.name}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           <div>

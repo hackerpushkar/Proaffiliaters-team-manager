@@ -205,6 +205,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                             style={{ backgroundColor: proj.color || "#3b5bfa" }}
                           />
                           <span className="truncate">{proj.name}</span>
+                          {proj.status === "paused" && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-black uppercase bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0 border border-amber-500/20">
+                              Hold
+                            </span>
+                          )}
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
                           {urgentCount > 0 && (

@@ -90,11 +90,23 @@ Team And Task Manager/
 ## 4. Core Modules
 
 ### Module 1: Ongoing Projects & Tasks (Two-Tier Workspace Architecture)
-- **Tier 1 (Initiatives Hub / Horizontal Full-Width Containers)**: High-aesthetic, full-width horizontal row containers matching the sleek Upcoming Features visual language. Each container displays category tags, active status pills, Project Lead info, title with chevron hover indicator, description snippet, collaborators roster with quick `+ Invite` triggers, deliverables progress bar with live percentage, and a prominent **`Continue Workspace →`** action button. Clicking anywhere on the container or the button immediately opens the full-screen project workspace.
+- **Tier 1 (Initiatives Hub / Horizontal Full-Width Containers)**: High-aesthetic, full-width horizontal row containers matching the sleek Upcoming Features visual language. Each container displays a 9-dot drag handle (`Grip`) on the far left for vertical drag-and-drop position reordering, category tags, active/on-hold status pills, Project Lead info, title with chevron hover indicator, description snippet, collaborators roster with quick `+ Invite` triggers, deliverables progress bar with live percentage, and a prominent **`Continue Workspace →`** action button. Clicking anywhere on the container or the button immediately opens the full-screen project workspace.
+- **Auto-Hold & Single Active Project Policy**: Ensures strict team focus by allowing only 1 active Ongoing Project at a time. Whenever a new project is created or an on-hold project is resumed, any other currently active project is automatically transitioned to **“On Hold”** (`paused`). The Hold/Resume controls are housed inside the dedicated project workspace (Tier 2) to maintain a clean Hub interface.
+- **9-Dot Container Drag & Drop Reordering**: Fluid vertical drag & drop with glowing insertion indicator bars above or below the target card. Position changes are saved to `localStorage` and synced to MongoDB with custom `order` indexing.
 - **Tier 2 (Dedicated Full-Page Project Workspace)**: Clicking "Continue Workspace →" or selecting a project from the sidebar opens a focused full-page workspace for that project, equipped with breadcrumb navigation (`← Back to All Projects`) and three multi-view modes:
-  1. **Hierarchy Tree View**: Linear-style compact task list with priority rank reordering buttons (▲/▼), P0-P3 badges, and expandable checklist drawers.
-  2. **Kanban Board View**: 5-column agile workflow (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with 1-click status changers.
+  1. **Hierarchy Tree View**: Linear-style compact task list with 9-dot drag handles (`Grip`) for fluid vertical drag-and-drop priority rank repositioning, priority rank reordering buttons (▲/▼), P0-P3 badges, and expandable checklist drawers.
+  2. **Kanban Board View**: 5-column agile workflow (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with 1-click status changers and click-to-slide task inspection.
   3. **Table Grid View**: Enterprise spreadsheet matrix for high-speed triage, sorting, and scanning.
+- **Task Slide-Over Drawer ("Task Slider" Panel)**: Clicking any task across the Linear Tree, Kanban board, or Table grid smoothly glides open a sleek right-side peek panel. Allows interactive live editing of deliverables, status pills, priority tiers, assignee switcher, due date picker, and inline checklist subtasks (with Enter-to-add support) without opening heavy modals.
+- **Enterprise-Tier Task Modal (`TaskModal.tsx`)**:
+  - Redesigned with Linear/Vercel visual standards: glassmorphic container (`backdrop-blur-md`), top brand gradient line, and Plus Jakarta Sans typography.
+  - **Interactive Priority Pills**: Color-coded segmented buttons (P0 Urgent in red with flame icon, P1 High in amber, P2 Normal in royal blue, P3 Low in slate) replacing plain dropdowns.
+  - **Status Lifecycle Pills**: 1-click segmented badges (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with active glow rings.
+  - **Rich Assignee Selector**: Teammate picker displaying avatar photo, member name, and role badge.
+  - **Quick Due-Date Presets**: Fast interval buttons (`+3 Days`, `+1 Week`, `+2 Weeks`) alongside standard calendar picker.
+  - **Interactive Tag Chips**: Clickable tag chips with remove triggers and rapid suggestion pills (`Sprint`, `Backend`, `Frontend`, `API`, `Security`, `BugFix`).
+  - **Subtask Deliverables Manager**: Live completion meter (`X / Y completed • Z%`) with gradient progress bar, toggleable checkboxes, and Enter-key addition.
+- **9-Dot Task Priority Repositioning**: In addition to 1-click ▲/▼ buttons, each task features a 9-dot grip square to smoothly drag and drop deliverables to any priority rank, automatically re-indexing `#1`, `#2`, `#3`... with animated insertion lines.
 - **Rapid Inline Task Creator**: Type a task title, choose priority (`P0` through `P3`), and press `Enter` to add tasks instantly inside the project workspace without opening heavy modal dialogs.
 - **Priority Rank Reordering**: Tasks are ordered strictly `#1`, `#2`, `#3`... with 1-click **▲ (Move Up)** and **▼ (Move Down)** buttons.
   - **P0 • Urgent**: Blocking/critical path deliverable.
@@ -115,6 +127,7 @@ Team And Task Manager/
 ### Module 2: Upcoming Features (Research & Execution Pipeline)
 - **Purpose**: Enables team members to submit, research, breakdown, document, and convert product features into real sprint deliverables.
 - **1-Line Linear Container Layout**: Replaces the old 2x2 grid with high-density full-width cards displaying phase badges, timeline, research points count, document counts, and action buttons.
+- **9-Dot Container Drag & Drop Reordering**: High-precision 9-dot square grip handle (`Grip`) positioned on the left edge of each feature card. Users can click and hold to drag containers up or down to reposition them, complete with pulse insertion lines and instantaneous state/database persistence.
 - **Full-Page Feature Workspace (`FeatureDetailView.tsx`)**: Clicking any feature container opens an expansive full-page detail view with breadcrumbs, phase switcher, technical notes editor, research point breakdown, and document attachments.
 - **4 Product Lifecycle Phases**:
   1. **`💡 Thinking`**: Initial concept, brainstorming & problem definition.
@@ -125,7 +138,7 @@ Team And Task Manager/
 - **Research Breakdown Points**: Team members can document granular research bullet points (e.g. *API latency tests*, *Rate limits*, *UI mockups*).
 - **Document & Resource Attachments**: Attach research PDFs, Google Docs, Notion specs, or architecture links.
 - **1-Click "▶ Start Feature" Conversion Engine**: Clicking "Start Feature" automatically spawns a new **Ongoing Project** and converts every research point into an actionable, prioritized sprint task!
-- **Attributes**: `id`, `name`, `description`, `targetTimeline`, `priority`, `status`, `author`, `votes`, `tags`, `points`, `documents`, `notes`, `convertedProjectId`.
+- **Attributes**: `id`, `name`, `description`, `targetTimeline`, `priority`, `status`, `author`, `votes`, `tags`, `points`, `documents`, `notes`, `convertedProjectId`, `order`.
 
 ### Module 3: Fix & Updates (Dual Diagnostics & Release Engine)
 - **Purpose**: Dedicated station for finding, documenting, fixing, and rolling out patches across all Proaffiliaters bots and web tools.

@@ -31,7 +31,9 @@ import {
   FeaturePoint,
   FeatureDocument,
   OngoingProject,
+  ProjectStatus,
   ProjectTask,
+  SubtaskItem,
   FixUpdate,
   TeamMember,
   ProjectInvitation,
@@ -90,6 +92,7 @@ interface TaskStoreContextType {
   updateFeature: (id: string, updates: Partial<UpcomingFeature>) => void;
   deleteFeature: (id: string) => void;
   voteFeature: (id: string) => void;
+  reorderFeatures: (draggedId: string, targetId: string, position?: "before" | "after") => void;
   startFeatureAsProject: (featureId: string) => OngoingProject | null;
   addFeaturePoint: (featureId: string, title: string) => void;
   toggleFeaturePoint: (featureId: string, pointId: string) => void;
@@ -101,6 +104,7 @@ interface TaskStoreContextType {
   addProject: (project: Omit<OngoingProject, "id" | "createdAt">) => OngoingProject;
   updateProject: (id: string, updates: Partial<OngoingProject>) => void;
   deleteProject: (id: string) => void;
+  reorderProjects: (draggedId: string, targetId: string, position?: "before" | "after") => void;
 
   // Tasks Actions
   addTask: (task: Omit<ProjectTask, "id" | "createdAt" | "priorityRank">) => void;
@@ -108,7 +112,10 @@ interface TaskStoreContextType {
   deleteTask: (id: string) => void;
   moveTaskStatus: (taskId: string, newStatus: TaskStatus) => void;
   reorderTaskPriority: (taskId: string, direction: "up" | "down") => void;
+  reorderTaskPosition: (draggedTaskId: string, targetTaskId: string, position?: "before" | "after") => void;
   toggleSubtask: (taskId: string, subtaskId: string) => void;
+  addSubtask: (taskId: string, title: string) => void;
+  deleteSubtask: (taskId: string, subtaskId: string) => void;
 
   // Fixes Actions
   addFix: (fix: Omit<FixUpdate, "id" | "createdAt">) => void;
@@ -519,6 +526,39 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
+  const reorderFeatures = (draggedId: string, targetId: string, position: "before" | "after" = "before") => {
+    if (draggedId === targetId) return;
+    setFeatures((prev) => {
+      const list = [...prev];
+      const fromIndex = list.findIndex((f) => f.id === draggedId);
+      if (fromIndex === -1) return prev;
+
+      const [movedItem] = list.splice(fromIndex, 1);
+      const toIndex = list.findIndex((f) => f.id === targetId);
+
+      if (toIndex === -1) {
+        list.push(movedItem);
+      } else {
+        const insertIndex = position === "after" ? toIndex + 1 : toIndex;
+        list.splice(insertIndex, 0, movedItem);
+      }
+
+      const updated = list.map((item, idx) => ({
+        ...item,
+        order: idx + 1,
+      }));
+
+      // Background sync to MongoDB if online
+      fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ features: updated }),
+      }).catch(() => {});
+
+      return updated;
+    });
+  };
+
   const startFeatureAsProject = (featureId: string): OngoingProject | null => {
     const feat = features.find((f) => f.id === featureId);
     if (!feat) return null;
@@ -585,8 +625,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    // 3. Update store state
-    setProjects((prev) => [newProject, ...prev]);
+    // 3. Update store state: auto-hold other active projects so only 1 active project remains
+    setProjects((prev) => [
+      newProject,
+      ...prev.map((p) => (p.status === "active" ? { ...p, status: "paused" as ProjectStatus } : p)),
+    ]);
     setTasks((prev) => [...newTasks, ...prev]);
     setFeatures((prev) =>
       prev.map((f) =>
@@ -715,7 +758,13 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split("T")[0],
     };
 
-    setProjects((prev) => [newProj, ...prev]);
+    // Auto-Hold Rule: If new project is active, move all other active projects to on hold (paused)
+    setProjects((prev) => {
+      const updatedPrev = newProj.status === "active"
+        ? prev.map((p) => (p.status === "active" ? { ...p, status: "paused" as ProjectStatus } : p))
+        : prev;
+      return [newProj, ...updatedPrev];
+    });
     setSelectedProjectId(newProj.id);
 
     // Save to MongoDB in background
@@ -729,7 +778,18 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProject = (id: string, updates: Partial<OngoingProject>) => {
-    setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+    // Auto-Hold Rule: If this project becomes active, move any other active projects to on hold (paused)
+    setProjects((prev) =>
+      prev.map((p) => {
+        if (p.id === id) {
+          return { ...p, ...updates };
+        }
+        if (updates.status === "active" && p.status === "active") {
+          return { ...p, status: "paused" as ProjectStatus };
+        }
+        return p;
+      })
+    );
 
     fetch("/api/projects", {
       method: "PUT",
@@ -746,6 +806,39 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }
 
     fetch(`/api/projects?id=${id}`, { method: "DELETE" }).catch(() => {});
+  };
+
+  const reorderProjects = (draggedId: string, targetId: string, position: "before" | "after" = "before") => {
+    if (draggedId === targetId) return;
+    setProjects((prev) => {
+      const list = [...prev];
+      const fromIndex = list.findIndex((p) => p.id === draggedId);
+      if (fromIndex === -1) return prev;
+
+      const [movedItem] = list.splice(fromIndex, 1);
+      const toIndex = list.findIndex((p) => p.id === targetId);
+
+      if (toIndex === -1) {
+        list.push(movedItem);
+      } else {
+        const insertIndex = position === "after" ? toIndex + 1 : toIndex;
+        list.splice(insertIndex, 0, movedItem);
+      }
+
+      const updated = list.map((item, idx) => ({
+        ...item,
+        order: idx + 1,
+      }));
+
+      // Background sync to MongoDB if online
+      fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ projects: updated }),
+      }).catch(() => {});
+
+      return updated;
+    });
   };
 
   // TASK ACTIONS
@@ -815,6 +908,62 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const reorderTaskPosition = (
+    draggedTaskId: string,
+    targetTaskId: string,
+    position: "before" | "after" = "before"
+  ) => {
+    if (draggedTaskId === targetTaskId) return;
+
+    setTasks((prev) => {
+      const draggedTask = prev.find((t) => t.id === draggedTaskId);
+      const targetTask = prev.find((t) => t.id === targetTaskId);
+      if (!draggedTask || !targetTask || draggedTask.projectId !== targetTask.projectId) {
+        return prev;
+      }
+
+      const projectId = draggedTask.projectId;
+      const projectTasks = prev
+        .filter((t) => t.projectId === projectId)
+        .sort((a, b) => a.priorityRank - b.priorityRank);
+
+      const fromIndex = projectTasks.findIndex((t) => t.id === draggedTaskId);
+      if (fromIndex === -1) return prev;
+
+      const [movedTask] = projectTasks.splice(fromIndex, 1);
+      const toIndex = projectTasks.findIndex((t) => t.id === targetTaskId);
+
+      if (toIndex === -1) {
+        projectTasks.push(movedTask);
+      } else {
+        const insertIndex = position === "after" ? toIndex + 1 : toIndex;
+        projectTasks.splice(insertIndex, 0, movedTask);
+      }
+
+      // Re-map priority ranks strictly 1, 2, 3...
+      const rankMap = new Map<string, number>();
+      projectTasks.forEach((t, idx) => {
+        rankMap.set(t.id, idx + 1);
+      });
+
+      const updated = prev.map((t) => {
+        if (rankMap.has(t.id)) {
+          return { ...t, priorityRank: rankMap.get(t.id)! };
+        }
+        return t;
+      });
+
+      // Background sync to MongoDB API
+      fetch("/api/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tasks: updated }),
+      }).catch(() => {});
+
+      return updated;
+    });
+  };
+
   const toggleSubtask = (taskId: string, subtaskId: string) => {
     setTasks((prev) =>
       prev.map((t) => {
@@ -831,6 +980,50 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
             body: JSON.stringify(updatedTask),
           }).catch(() => {});
           return updatedTask;
+        }
+        return t;
+      })
+    );
+  };
+
+  const addSubtask = (taskId: string, title: string) => {
+    const cleanTitle = title.trim();
+    if (!cleanTitle) return;
+    const newSubtask: SubtaskItem = {
+      id: `st-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+      title: cleanTitle,
+      completed: false,
+    };
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          const updated = { ...t, subtasks: [...(t.subtasks || []), newSubtask] };
+          fetch("/api/tasks", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updated),
+          }).catch(() => {});
+          return updated;
+        }
+        return t;
+      })
+    );
+  };
+
+  const deleteSubtask = (taskId: string, subtaskId: string) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === taskId) {
+          const updated = {
+            ...t,
+            subtasks: (t.subtasks || []).filter((st) => st.id !== subtaskId),
+          };
+          fetch("/api/tasks", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(updated),
+          }).catch(() => {});
+          return updated;
         }
         return t;
       })
@@ -1029,6 +1222,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         updateFeature,
         deleteFeature,
         voteFeature,
+        reorderFeatures,
         startFeatureAsProject,
         addFeaturePoint,
         toggleFeaturePoint,
@@ -1038,12 +1232,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         addProject,
         updateProject,
         deleteProject,
+        reorderProjects,
         addTask,
         updateTask,
         deleteTask,
         moveTaskStatus,
         reorderTaskPriority,
+        reorderTaskPosition,
         toggleSubtask,
+        addSubtask,
+        deleteSubtask,
         addFix,
         updateFix,
         deleteFix,

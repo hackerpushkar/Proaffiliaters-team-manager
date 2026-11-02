@@ -5,6 +5,7 @@
  * WHAT THIS FILE DOES:
  * Implements the Upcoming Features Innovation & Research Hub:
  * - 1-Line full-width linear container list (replacing old 2x2 grid)
+ * - 9-Dot drag handle (Grip) for fluid vertical drag-and-drop container reordering
  * - 4 Enterprise Lifecycle Phases: Thinking, Research, Ready to Go, Future Build
  * - Full-Page Feature Detail Workspace: Click any container to open full-page view
  * - Research Points & Document attachments tracking
@@ -16,16 +17,17 @@
  * and give a button a start then our points become task automatically
  * and other pases like future build , thinking , research , ready to go
  * and when we click on container and show full page view for that upcoming projects".
+ * Also supports 9-dot drag handle container repositioning.
  *
  * HOW IT FITS INTO THE OVERALL WORKFLOW:
- * Dispatches feature updates and project conversion to useTaskStore; renders
- * either the 1-line feature stream or FeatureDetailView for full-page inspection.
+ * Dispatches feature updates, reordering and project conversion to useTaskStore;
+ * renders either the 1-line feature stream or FeatureDetailView for full-page inspection.
  * ============================================================================
  */
 
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import {
   Lightbulb,
   Plus,
@@ -43,6 +45,7 @@ import {
   ArrowRight,
   ChevronRight,
   ExternalLink,
+  Grip,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 import { UpcomingFeature, FeaturePriority, FeatureStatus } from "@/lib/types";
@@ -61,6 +64,7 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
     features,
     deleteFeature,
     voteFeature,
+    reorderFeatures,
     startFeatureAsProject,
     searchQuery,
   } = useTaskStore();
@@ -68,6 +72,12 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+
+  // Drag and drop reordering states
+  const [draggedFeatureId, setDraggedFeatureId] = useState<string | null>(null);
+  const [dragOverFeatureId, setDragOverFeatureId] = useState<string | null>(null);
+  const [dropPosition, setDropPosition] = useState<"before" | "after" | null>(null);
+  const dragInitiatedFromHandle = useRef<boolean>(false);
 
   const filteredFeatures = useMemo(() => {
     return features.filter((feat) => {
@@ -281,74 +291,167 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
             return (
               <div
                 key={feat.id}
-                onClick={() => setSelectedFeatureId(feat.id)}
-                className="group relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card border border-border hover:border-primary/40 hover:shadow-md transition-all cursor-pointer overflow-hidden"
+                draggable
+                onDragStart={(e) => {
+                  if (!dragInitiatedFromHandle.current) {
+                    e.preventDefault();
+                    return;
+                  }
+                  setDraggedFeatureId(feat.id);
+                  e.dataTransfer.effectAllowed = "move";
+                  e.dataTransfer.setData("text/plain", feat.id);
+                }}
+                onDragEnd={() => {
+                  dragInitiatedFromHandle.current = false;
+                  setDraggedFeatureId(null);
+                  setDragOverFeatureId(null);
+                  setDropPosition(null);
+                }}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!draggedFeatureId || draggedFeatureId === feat.id) return;
+                  e.dataTransfer.dropEffect = "move";
+                  const rect = e.currentTarget.getBoundingClientRect();
+                  const midY = rect.top + rect.height / 2;
+                  const isAbove = e.clientY < midY;
+                  const pos = isAbove ? "before" : "after";
+                  if (dragOverFeatureId !== feat.id || dropPosition !== pos) {
+                    setDragOverFeatureId(feat.id);
+                    setDropPosition(pos);
+                  }
+                }}
+                onDragLeave={(e) => {
+                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                    if (dragOverFeatureId === feat.id) {
+                      setDragOverFeatureId(null);
+                      setDropPosition(null);
+                    }
+                  }
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!draggedFeatureId || draggedFeatureId === feat.id) return;
+                  reorderFeatures(draggedFeatureId, feat.id, dropPosition || "before");
+                  dragInitiatedFromHandle.current = false;
+                  setDraggedFeatureId(null);
+                  setDragOverFeatureId(null);
+                  setDropPosition(null);
+                }}
+                onClick={() => {
+                  if (draggedFeatureId) return;
+                  setSelectedFeatureId(feat.id);
+                }}
+                className={`group relative flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card border transition-all cursor-pointer overflow-hidden ${
+                  draggedFeatureId === feat.id
+                    ? "opacity-30 scale-[0.99] border-dashed border-primary shadow-inner"
+                    : dragOverFeatureId === feat.id
+                    ? dropPosition === "before"
+                      ? "border-primary shadow-md ring-2 ring-primary/40 -translate-y-0.5"
+                      : "border-primary shadow-md ring-2 ring-primary/40 translate-y-0.5"
+                    : "border-border hover:border-primary/40 hover:shadow-md"
+                }`}
               >
+                {/* Drop indicator bar on top */}
+                {dragOverFeatureId === feat.id && dropPosition === "before" && (
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-t-2xl z-20 animate-pulse" />
+                )}
+                {/* Drop indicator bar on bottom */}
+                {dragOverFeatureId === feat.id && dropPosition === "after" && (
+                  <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-b-2xl z-20 animate-pulse" />
+                )}
+
                 {/* Left Accent indicator line */}
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity" />
 
-                {/* Main Content Block */}
-                <div className="flex flex-col gap-2 flex-1 min-w-0">
-                  {/* Meta Pills Row */}
-                  <div className="flex flex-wrap items-center gap-2">
-                    {/* Phase Badge */}
-                    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-xs ${phase.color}`}>
-                      <span>{phase.icon}</span>
-                      <span>{phase.label}</span>
-                    </span>
-
-                    {/* Priority Badge */}
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getPriorityBadge(feat.priority)}`}>
-                      {feat.priority}
-                    </span>
-
-                    {/* Target Timeline */}
-                    <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground px-2 py-0.5 rounded-md bg-muted/60">
-                      <Calendar size={11} className="text-primary" />
-                      <span>{feat.targetTimeline}</span>
-                    </div>
-
-                    {/* Author */}
-                    <span className="text-[11px] text-muted-foreground hidden sm:inline">
-                      by {feat.author}
-                    </span>
+                {/* Left region: 9-Dot Drag Handle + Main Content */}
+                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3.5 flex-1 min-w-0">
+                  {/* 9-Dot Drag Handle (3x3 dots grip icon) */}
+                  <div
+                    data-drag-handle="true"
+                    draggable={false}
+                    onMouseDown={() => {
+                      dragInitiatedFromHandle.current = true;
+                    }}
+                    onMouseUp={() => {
+                      dragInitiatedFromHandle.current = false;
+                    }}
+                    onTouchStart={() => {
+                      dragInitiatedFromHandle.current = true;
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
+                    className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 active:bg-primary/20 cursor-grab active:cursor-grabbing transition-all shrink-0 self-start sm:self-center group/handle border border-transparent hover:border-primary/20 select-none"
+                    title="Hold and drag up or down to reposition"
+                    aria-label="Reorder feature"
+                  >
+                    <Grip size={18} className="group-hover/handle:scale-110 group-active/handle:scale-95 transition-transform" />
                   </div>
 
-                  {/* Feature Title */}
-                  <h3 className="text-base font-heading font-extrabold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                    <span>{feat.name}</span>
-                    <ChevronRight size={15} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                  </h3>
+                  {/* Main Content Block */}
+                  <div className="flex flex-col gap-2 flex-1 min-w-0">
+                    {/* Meta Pills Row */}
+                    <div className="flex flex-wrap items-center gap-2">
+                      {/* Phase Badge */}
+                      <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider border shadow-xs ${phase.color}`}>
+                        <span>{phase.icon}</span>
+                        <span>{phase.label}</span>
+                      </span>
 
-                  {/* Feature Description snippet */}
-                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
-                    {feat.description}
-                  </p>
+                      {/* Priority Badge */}
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${getPriorityBadge(feat.priority)}`}>
+                        {feat.priority}
+                      </span>
 
-                  {/* Research Points & Docs Badges Row */}
-                  <div className="flex flex-wrap items-center gap-2 pt-1">
-                    {/* Points Count Pill */}
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 text-foreground border border-border text-[11px] font-medium">
-                      <CheckCircle2 size={12} className={pointsCount > 0 ? "text-emerald-500" : "text-muted-foreground"} />
-                      <span>
-                        {pointsCount > 0
-                          ? `${completedPointsCount}/${pointsCount} Research Points`
-                          : "0 Research Points"}
+                      {/* Target Timeline */}
+                      <div className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground px-2 py-0.5 rounded-md bg-muted/60">
+                        <Calendar size={11} className="text-primary" />
+                        <span>{feat.targetTimeline}</span>
+                      </div>
+
+                      {/* Author */}
+                      <span className="text-[11px] text-muted-foreground hidden sm:inline">
+                        by {feat.author}
                       </span>
                     </div>
 
-                    {/* Docs Count Pill */}
-                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 text-foreground border border-border text-[11px] font-medium">
-                      <FileText size={12} className={docsCount > 0 ? "text-primary" : "text-muted-foreground"} />
-                      <span>{docsCount} {docsCount === 1 ? "Doc" : "Docs"}</span>
-                    </div>
+                    {/* Feature Title */}
+                    <h3 className="text-base font-heading font-extrabold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                      <span>{feat.name}</span>
+                      <ChevronRight size={15} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                    </h3>
 
-                    {/* Tags */}
-                    {feat.tags && feat.tags.slice(0, 3).map((t, i) => (
-                      <span key={i} className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
-                        #{t}
-                      </span>
-                    ))}
+                    {/* Feature Description snippet */}
+                    <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {feat.description}
+                    </p>
+
+                    {/* Research Points & Docs Badges Row */}
+                    <div className="flex flex-wrap items-center gap-2 pt-1">
+                      {/* Points Count Pill */}
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 text-foreground border border-border text-[11px] font-medium">
+                        <CheckCircle2 size={12} className={pointsCount > 0 ? "text-emerald-500" : "text-muted-foreground"} />
+                        <span>
+                          {pointsCount > 0
+                            ? `${completedPointsCount}/${pointsCount} Research Points`
+                            : "0 Research Points"}
+                        </span>
+                      </div>
+
+                      {/* Docs Count Pill */}
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/70 text-foreground border border-border text-[11px] font-medium">
+                        <FileText size={12} className={docsCount > 0 ? "text-primary" : "text-muted-foreground"} />
+                        <span>{docsCount} {docsCount === 1 ? "Doc" : "Docs"}</span>
+                      </div>
+
+                      {/* Tags */}
+                      {feat.tags && feat.tags.slice(0, 3).map((t, i) => (
+                        <span key={i} className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded-md">
+                          #{t}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
@@ -431,7 +534,9 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
  * ============================================================================
  * FOOTER BLOCK: components/UpcomingFeaturesView.tsx Implementation Notes
  * ============================================================================
- * - Layout: 1-line full-width containers; clicking any card opens FeatureDetailView.
+ * - Layout: 1-line full-width containers with 9-dot drag handles for reordering;
+ *   clicking any card opens FeatureDetailView.
+ * - Reorder Engine: Native HTML5 drag & drop bound to 9-dot grip icon with drop indicators.
  * - Lifecycle: Thinking, Research, Ready to Go, Future Build, In Progress.
  * - Start Engine: Automatically converts research points into sprint tasks in Ongoing Projects.
  * ============================================================================
