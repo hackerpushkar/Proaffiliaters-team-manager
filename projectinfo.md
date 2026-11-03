@@ -97,15 +97,13 @@ Team And Task Manager/
   1. **Hierarchy Tree View**: Linear-style compact task list with 9-dot drag handles (`Grip`) for fluid vertical drag-and-drop priority rank repositioning, priority rank reordering buttons (▲/▼), P0-P3 badges, and expandable checklist drawers.
   2. **Kanban Board View**: 5-column agile workflow (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with 1-click status changers and click-to-slide task inspection.
   3. **Table Grid View**: Enterprise spreadsheet matrix for high-speed triage, sorting, and scanning.
-- **Task Slide-Over Drawer ("Task Slider" Panel)**: Clicking any task across the Linear Tree, Kanban board, or Table grid smoothly glides open a sleek right-side peek panel. Allows interactive live editing of deliverables, status pills, priority tiers, assignee switcher, due date picker, and inline checklist subtasks (with Enter-to-add support) without opening heavy modals.
-- **Enterprise-Tier Task Modal (`TaskModal.tsx`)**:
-  - Redesigned with Linear/Vercel visual standards: glassmorphic container (`backdrop-blur-md`), top brand gradient line, and Plus Jakarta Sans typography.
-  - **Interactive Priority Pills**: Color-coded segmented buttons (P0 Urgent in red with flame icon, P1 High in amber, P2 Normal in royal blue, P3 Low in slate) replacing plain dropdowns.
-  - **Status Lifecycle Pills**: 1-click segmented badges (`Backlog`, `To Do`, `In Progress`, `Review`, `Done`) with active glow rings.
-  - **Rich Assignee Selector**: Teammate picker displaying avatar photo, member name, and role badge.
-  - **Quick Due-Date Presets**: Fast interval buttons (`+3 Days`, `+1 Week`, `+2 Weeks`) alongside standard calendar picker.
-  - **Interactive Tag Chips**: Clickable tag chips with remove triggers and rapid suggestion pills (`Sprint`, `Backend`, `Frontend`, `API`, `Security`, `BugFix`).
-  - **Subtask Deliverables Manager**: Live completion meter (`X / Y completed • Z%`) with gradient progress bar, toggleable checkboxes, and Enter-key addition.
+- **Unified Right-Side Slide-Over Drawer System**:
+  - Eliminates all center pop-up modals across the entire application in favor of smooth, right-side sliding windows (`animate-slideInRight`) with dimmed backdrop blur (`backdrop-blur-xs`), sticky action footers, and top brand gradient lines.
+  - **Task Slide-Over Drawer (`TaskSlideOverDrawer.tsx` & `TaskModal.tsx`)**: Clicking any task slides open the peek drawer for live inspection, while clicking `+ Add Task` or "Open full editor" glides open the comprehensive right-side editor with P0-P3 segmented pills, status lifecycle switchers, avatar picker, quick due-date presets (`+3d`, `+1w`, `+2w`), tag chips, and live subtask checklist meters.
+  - **Project Slide-Over Drawer (`ProjectModal.tsx`)**: Right-side drawer for creating and editing Ongoing Projects with category tags, team lead selection, status pills (Active, On Hold, Planning, Completed), brand theme color palette, and teammate Gmail invitation input.
+  - **Feature Slide-Over Drawer (`FeatureModal.tsx`)**: Right-side drawer for proposing and updating Upcoming Features with lifecycle phase badges (`Thinking`, `Research`, `Ready to Go`, `Future Build`), target timelines, and tag management.
+  - **Fix & Update Slide-Over Drawer (`FixModal.tsx`)**: Right-side drawer for logging bugs and posting platform releases with severity pills (`Critical`, `Major`, `Minor`, `Patch`), affected subsystem datalists, and changelog verification notes.
+  - **Teammate & Member Drawers (`InviteTeammateModal.tsx`, `MemberModal.tsx`)**: Right-side slide-over windows for project collaboration and administrator credential provisioning.
 - **9-Dot Task Priority Repositioning**: In addition to 1-click ▲/▼ buttons, each task features a 9-dot grip square to smoothly drag and drop deliverables to any priority rank, automatically re-indexing `#1`, `#2`, `#3`... with animated insertion lines.
 - **Rapid Inline Task Creator**: Type a task title, choose priority (`P0` through `P3`), and press `Enter` to add tasks instantly inside the project workspace without opening heavy modal dialogs.
 - **Priority Rank Reordering**: Tasks are ordered strictly `#1`, `#2`, `#3`... with 1-click **▲ (Move Up)** and **▼ (Move Down)** buttons.

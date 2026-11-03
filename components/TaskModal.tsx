@@ -1,9 +1,10 @@
 /**
  * ============================================================================
- * HEADER BLOCK: components/TaskModal.tsx — Minor Task Creation & Editing Dialog
+ * HEADER BLOCK: components/TaskModal.tsx — Minor Task Slide-Over Drawer
  * ============================================================================
  * WHAT THIS FILE DOES:
- * Provides an enterprise-tier, high-aesthetic modal to create or edit a Minor Task:
+ * Provides an enterprise-tier right-side slide-over drawer to create or edit a Minor Task:
+ * - Glides in smoothly from the right edge with a dimmed backdrop (no center popup)
  * - Parent Major Task assignment with project brand color indicator & category
  * - Minor Task Title & Description with high-focus typography
  * - Interactive Segmented Priority Selector (P0 Urgent, P1 High, P2 Normal, P3 Low)
@@ -14,8 +15,8 @@
  * - Interactive Subtasks / Checklist builder with live progress meter and toggleable states
  *
  * WHY THIS FILE EXISTS:
- * Eliminates plain, unstyled HTML form controls in favor of a modern Linear/Vercel-level
- * task authoring experience aligned with the Proaffiliaters visual design system.
+ * Fulfills user request: Replace center pop-up modals across the platform with
+ * unified right-side slide-over drawers matching the Task Slide-Over peek panel experience.
  *
  * HOW IT FITS INTO THE OVERALL WORKFLOW:
  * Interacts with useTaskStore to call addTask or updateTask, ensuring complete
@@ -322,25 +323,31 @@ export const TaskModal: React.FC<TaskModalProps> = ({
   const selectedProject = projects.find((p) => p.id === projectId);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-md transition-all animate-fadeIn">
-      {/* Modal Card */}
-      <div className="relative w-full max-w-2xl max-h-[92vh] flex flex-col rounded-3xl bg-card border border-border/80 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.35)] overflow-hidden transition-all">
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+      {/* Dimmed Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity duration-300"
+      />
+
+      {/* Slide-Over Drawer Container */}
+      <div className="relative w-full max-w-xl sm:max-w-2xl bg-card border-l border-border shadow-2xl h-full flex flex-col z-10 animate-slideInRight overflow-hidden">
         {/* Top Accent Gradient Bar */}
         <div className="h-1.5 w-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 shrink-0" />
 
-        {/* Modal Header */}
-        <div className="flex items-center justify-between px-6 py-4.5 border-b border-border bg-card/80 backdrop-blur-xs shrink-0">
-          <div className="flex items-center gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
-              {taskToEdit ? <Sparkles size={20} /> : <CheckSquare size={20} />}
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/95 backdrop-blur-xs shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-xs">
+              {taskToEdit ? <Sparkles size={18} /> : <CheckSquare size={18} />}
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-lg font-heading font-extrabold text-foreground tracking-tight">
+                <h3 className="text-base font-heading font-extrabold text-foreground tracking-tight">
                   {taskToEdit ? "Edit Task" : "Create New Task"}
                 </h3>
                 {selectedProject && (
-                  <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-muted text-muted-foreground border border-border">
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-bold bg-muted text-muted-foreground border border-border">
                     <span
                       className="w-1.5 h-1.5 rounded-full"
                       style={{ backgroundColor: selectedProject.color || "#3b5bfa" }}
@@ -349,7 +356,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 {taskToEdit
                   ? "Update deliverables, priority order, assignee, and checklist items."
                   : "Define deliverables, priority hierarchy, and team assignments under a project."}
@@ -360,10 +367,10 @@ export const TaskModal: React.FC<TaskModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
-            title="Close dialog (Esc)"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+            title="Close drawer (Esc)"
           >
-            <X size={19} />
+            <X size={18} />
           </button>
         </div>
 
@@ -762,8 +769,8 @@ export const TaskModal: React.FC<TaskModalProps> = ({
             )}
           </div>
 
-          {/* Modal Footer Controls */}
-          <div className="flex items-center justify-between pt-4 border-t border-border shrink-0 mt-4">
+          {/* Drawer Footer Controls */}
+          <div className="px-6 py-4 -mx-6 -mb-6 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between shrink-0 sticky bottom-0">
             <span className="text-[11px] text-muted-foreground hidden sm:inline">
               * Required fields
             </span>
@@ -771,13 +778,13 @@ export const TaskModal: React.FC<TaskModalProps> = ({
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 border border-border font-bold transition-all"
+                className="px-4 py-2 rounded-xl text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 border border-border font-bold transition-all"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold shadow-md shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-[1.01] active:scale-[0.99]"
+                className="flex items-center gap-2 px-6 py-2 rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold shadow-md shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
                 <Check size={16} className="stroke-[2.5]" />
                 <span>{taskToEdit ? "Save Changes" : "Create Task"}</span>
@@ -797,8 +804,7 @@ export const TaskModal: React.FC<TaskModalProps> = ({
  * - Workflow & Execution: Form validation checks title & parent project; dispatches
  *   clean addTask or updateTask mutations to useTaskStore with auto-calculated ranks.
  * - Data Movement: Keeps subtasks, priority pills, and tag chips strictly synchronized.
- * - Key Exports: TaskModal React functional component.
- * - Caveats to Avoid Regressions: Never remove assignee email normalization;
- *   the system depends on lowercase assigneeEmail for "My Tasks" filtering.
+ * - Key Exports: TaskModal React functional component (Right-Side Slide-Over Drawer).
+ * - Caveats to Avoid Regressions: Preserves lowercase assigneeEmail normalization.
  * ============================================================================
  */

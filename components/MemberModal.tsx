@@ -158,33 +158,44 @@ export const MemberModal: React.FC<MemberModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in">
-      <div className="relative w-full max-w-xl max-h-[92vh] overflow-y-auto rounded-2xl bg-card border border-border shadow-2xl p-6">
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+      {/* Dimmed Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity duration-300"
+      />
+
+      {/* Slide-Over Drawer Container */}
+      <div className="relative w-full max-w-xl sm:max-w-2xl bg-card border-l border-border shadow-2xl h-full flex flex-col z-10 animate-slideInRight overflow-hidden">
+        {/* Top Accent Gradient Bar */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-primary via-indigo-500 to-purple-600 shrink-0" />
+
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-border">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/95 backdrop-blur-xs shrink-0">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-primary/10 text-primary border border-primary/20 shrink-0">
               <UserPlus size={20} />
             </div>
             <div>
-              <h3 className="text-lg font-heading font-extrabold text-foreground">
+              <h3 className="text-base font-heading font-extrabold text-foreground tracking-tight">
                 {memberToEdit ? "Edit Team Account & Role" : "Add Real Team Account"}
               </h3>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Configure account credentials, permissions, assigned role, and contact details.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+            title="Close drawer (Esc)"
           >
             <X size={18} />
           </button>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4 text-xs sm:text-sm">
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4 text-xs sm:text-sm">
           {/* Name & Email */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
@@ -398,21 +409,26 @@ export const MemberModal: React.FC<MemberModalProps> = ({
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-2.5 pt-4 border-t border-border mt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground bg-muted border border-border font-semibold transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 shadow-sm transition-all"
-            >
-              <Shield size={16} />
-              <span>{memberToEdit ? "Save Changes" : "Create Team Account"}</span>
-            </button>
+          <div className="px-6 py-4 -mx-6 -mb-6 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between shrink-0 sticky bottom-0 mt-4">
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+              * Required fields
+            </span>
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground bg-muted border border-border font-semibold transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 shadow-sm transition-all"
+              >
+                <Shield size={16} />
+                <span>{memberToEdit ? "Save Changes" : "Create Team Account"}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

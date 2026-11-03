@@ -156,7 +156,7 @@ export const TaskSlideOverDrawer: React.FC<TaskSlideOverDrawerProps> = ({
                   onOpenEditModal(task);
                 }}
                 className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                title="Open full edit modal"
+                title="Open full editor"
               >
                 <ExternalLink size={15} />
               </button>

@@ -91,13 +91,26 @@ export const InviteTeammateModal: React.FC<InviteTeammateModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+      {/* Dimmed Backdrop */}
       <div
-        className="w-full max-w-lg bg-card border border-border rounded-2xl shadow-2xl overflow-hidden animate-scaleUp"
+        onClick={onClose}
+        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity duration-300"
+      />
+
+      {/* Slide-Over Drawer Container */}
+      <div
+        className="relative w-full max-w-xl bg-card border-l border-border shadow-2xl h-full flex flex-col z-10 animate-slideInRight overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Top Accent Gradient Bar */}
+        <div
+          className="h-1.5 w-full shrink-0"
+          style={{ background: `linear-gradient(90deg, ${project.color}, #7c3aed)` }}
+        />
+
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-muted/40">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/95 backdrop-blur-xs shrink-0">
           <div className="flex items-center gap-2.5">
             <div
               className="w-8 h-8 rounded-xl flex items-center justify-center shadow-xs"
@@ -123,7 +136,7 @@ export const InviteTeammateModal: React.FC<InviteTeammateModalProps> = ({
           </button>
         </div>
 
-        <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
+        <div className="flex-1 p-6 space-y-5 overflow-y-auto">
           {/* Status feedback */}
           {statusMsg && (
             <div

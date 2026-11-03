@@ -1,29 +1,31 @@
 /**
  * ============================================================================
- * HEADER BLOCK: components/ProjectModal.tsx — Major Task Creation Dialog
+ * HEADER BLOCK: components/ProjectModal.tsx — Project Slide-Over Drawer
  * ============================================================================
  * WHAT THIS FILE DOES:
- * Modal to define or modify a Major Task (e.g. "Make Prowasp Telegram Bot").
- * Captures:
- * - Major Task Name
- * - Scope & Architectural Description
- * - Category Tag
- * - Major Task Lead
- * - Brand Theme Color Accent
- * - Major Task Status
+ * Provides a right-side slide-over drawer to define or modify an Ongoing Project:
+ * - Glides in smoothly from the right edge with a dimmed backdrop (no center popup)
+ * - Major Project Name & Scope Description
+ * - Category Tag selector & quick presets
+ * - Project Lead assignment with team member avatars
+ * - Brand Theme Color Accent picker
+ * - Project Status (Active, On Hold/Paused, Planning, Completed)
+ * - Teammate Gmail invite input
  *
  * WHY THIS FILE EXISTS:
- * Enables the team to spin up new major initiatives and organize minor tasks underneath them.
+ * Fulfills user request: Replace center pop-up modals across the platform with
+ * unified right-side slide-over drawers matching the Task Slide-Over peek panel experience.
  *
  * HOW IT FITS INTO THE OVERALL WORKFLOW:
- * Calls addProject or updateProject in useTaskStore.
+ * Calls addProject or updateProject in useTaskStore, updating project state and
+ * triggering invitations seamlessly.
  * ============================================================================
  */
 
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, FolderPlus, Palette } from "lucide-react";
+import { X, FolderKanban, Check, Palette, Sparkles, User, Tag, Mail, ShieldAlert } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 import { OngoingProject, ProjectStatus } from "@/lib/types";
 
@@ -40,6 +42,15 @@ const COLOR_OPTIONS = [
   { label: "Emerald", value: "#10b981" },
   { label: "Rose", value: "#ef4444" },
   { label: "Amber", value: "#f59e0b" },
+];
+
+const COMMON_CATEGORIES = [
+  "Telegram Automation",
+  "Bot Engine",
+  "Web Platform",
+  "Affiliate Scraping",
+  "API & Infrastructure",
+  "Marketing & Growth",
 ];
 
 export const ProjectModal: React.FC<ProjectModalProps> = ({
@@ -76,6 +87,16 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
       setInviteGmail("");
     }
   }, [projectToEdit, isOpen, teamMembers, currentUser]);
+
+  // Close on Escape key press
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
@@ -117,102 +138,191 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
     onClose();
   };
 
+  const projectStatusOptions: { id: ProjectStatus; label: string; desc: string }[] = [
+    { id: "active", label: "⚡ Active Sprint", desc: "Currently ongoing (Single active focus)" },
+    { id: "paused", label: "⏸ On Hold", desc: "Paused while another project takes priority" },
+    { id: "planning", label: "📋 Planning", desc: "Scoping requirements & tasks" },
+    { id: "completed", label: "📦 Completed", desc: "All deliverables shipped" },
+  ];
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl p-6">
-        <div className="flex items-center justify-between pb-4 border-b border-border">
-          <div>
-            <h3 className="text-lg font-heading font-extrabold text-foreground">
-              {projectToEdit ? "Edit Project" : "Create New Project"}
-            </h3>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              e.g. &quot;Make Prowasp Telegram Bot&quot; to organize and prioritize tasks.
-            </p>
+    <div className="fixed inset-0 z-50 overflow-hidden flex justify-end">
+      {/* Dimmed Backdrop */}
+      <div
+        onClick={onClose}
+        className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs transition-opacity duration-300"
+      />
+
+      {/* Slide-Over Drawer Container */}
+      <div className="relative w-full max-w-xl sm:max-w-2xl bg-card border-l border-border shadow-2xl h-full flex flex-col z-10 animate-slideInRight overflow-hidden">
+        {/* Top Accent Gradient Bar */}
+        <div
+          className="h-1.5 w-full shrink-0 transition-colors"
+          style={{
+            background: `linear-gradient(90deg, ${color}, #7c3aed)`,
+          }}
+        />
+
+        {/* Drawer Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/95 backdrop-blur-xs shrink-0">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-xs transition-colors"
+              style={{ backgroundColor: color }}
+            >
+              <FolderKanban size={18} />
+            </div>
+            <div>
+              <h3 className="text-base font-heading font-extrabold text-foreground tracking-tight">
+                {projectToEdit ? "Edit Ongoing Project" : "Create Ongoing Project"}
+              </h3>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Organize deliverables, team collaborators, and priority-sequenced tasks.
+              </p>
+            </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted"
+            className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/80 transition-colors"
+            title="Close drawer (Esc)"
           >
             <X size={18} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-4 text-xs">
+        {/* Scrollable Form Body */}
+        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5 text-xs">
+          {/* Project Name */}
           <div>
-            <label className="block font-semibold text-foreground mb-1">Project Name:</label>
+            <label className="block text-xs font-bold text-foreground mb-1.5">
+              Project Name *
+            </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Make Prowasp Telegram Bot"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+              className="w-full px-4 py-2.5 rounded-xl bg-muted/50 hover:bg-muted/70 focus:bg-card border border-border text-foreground placeholder:text-muted-foreground font-semibold focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all shadow-xs"
               required
             />
           </div>
 
+          {/* Description & Goal */}
           <div>
-            <label className="block font-semibold text-foreground mb-1">Description & Goal:</label>
+            <label className="block text-xs font-bold text-foreground mb-1.5">
+              Description & Milestone Scope
+            </label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              placeholder="What does this project accomplish and what tasks will it contain?"
-              className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+              placeholder="What does this project accomplish, who will use it, and what are the main goals?"
+              className="w-full px-4 py-2.5 rounded-xl bg-muted/50 hover:bg-muted/70 focus:bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all shadow-xs resize-y"
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Category & Status Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Category */}
             <div>
-              <label className="block font-semibold text-foreground mb-1">Category:</label>
+              <label className="flex items-center gap-1.5 text-xs font-bold text-foreground mb-1.5">
+                <Tag size={13} className="text-primary" />
+                <span>Category Tag</span>
+              </label>
               <input
                 type="text"
+                list="project-categories"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                placeholder="e.g. Telegram Automation, Web Platform"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+                placeholder="e.g. Telegram Automation"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/50 hover:bg-muted/70 focus:bg-card border border-border text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all shadow-xs"
               />
+              <datalist id="project-categories">
+                {COMMON_CATEGORIES.map((c) => (
+                  <option key={c} value={c} />
+                ))}
+              </datalist>
             </div>
 
+            {/* Project Lead */}
             <div>
-              <label className="block font-semibold text-foreground mb-1">Project Status:</label>
+              <label className="flex items-center gap-1.5 text-xs font-bold text-foreground mb-1.5">
+                <User size={13} className="text-primary" />
+                <span>Project Lead</span>
+              </label>
               <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as ProjectStatus)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs font-semibold"
+                value={lead}
+                onChange={(e) => setLead(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/50 hover:bg-muted/70 focus:bg-card border border-border text-foreground font-medium focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all shadow-xs"
               >
-                <option value="active">⚡ Active Sprint</option>
-                <option value="paused">⏸ On Hold (Paused)</option>
-                <option value="planning">📋 Planning</option>
-                <option value="completed">📦 Completed / Closed</option>
+                {teamMembers.map((m) => (
+                  <option key={m.id} value={m.name}>
+                    {m.name} ({m.role})
+                  </option>
+                ))}
               </select>
             </div>
           </div>
 
+          {/* Project Lifecycle Status Pills */}
           <div>
-            <label className="block font-semibold text-foreground mb-1">Project Lead:</label>
-            <select
-              value={lead}
-              onChange={(e) => setLead(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
-            >
-              {teamMembers.map((m) => (
-                <option key={m.id} value={m.name}>
-                  {m.name}
-                </option>
-              ))}
-            </select>
+            <label className="block text-xs font-bold text-foreground mb-2">
+              Project Status
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {projectStatusOptions.map((opt) => {
+                const isSelected = status === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setStatus(opt.id)}
+                    className={`p-3 rounded-2xl border text-left transition-all ${
+                      isSelected
+                        ? "bg-primary text-white border-transparent ring-2 ring-primary/40 shadow-md shadow-primary/25"
+                        : "bg-muted/30 hover:bg-muted/60 border-border text-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-extrabold text-xs">{opt.label}</span>
+                      {isSelected && <Check size={14} className="stroke-[3]" />}
+                    </div>
+                    <p
+                      className={`text-[10px] mt-0.5 ${
+                        isSelected ? "text-white/80" : "text-muted-foreground"
+                      }`}
+                    >
+                      {opt.desc}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
-          <div>
-            <label className="block font-semibold text-foreground mb-1.5">Color Accent:</label>
+          {/* Brand Color Accent */}
+          <div className="p-4 rounded-2xl bg-muted/20 border border-border">
+            <div className="flex items-center justify-between mb-2">
+              <label className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+                <Palette size={14} className="text-primary" />
+                <span>Brand Theme Color Accent</span>
+              </label>
+              <span className="text-[11px] font-mono text-muted-foreground uppercase">
+                {color}
+              </span>
+            </div>
             <div className="flex items-center gap-3">
               {COLOR_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => setColor(opt.value)}
-                  className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                    color === opt.value ? "scale-110 border-foreground ring-2 ring-primary" : "border-transparent"
+                  className={`w-8 h-8 rounded-full border-2 transition-transform cursor-pointer ${
+                    color === opt.value
+                      ? "scale-115 border-foreground ring-2 ring-primary shadow-sm"
+                      : "border-transparent opacity-80 hover:opacity-100"
                   }`}
                   style={{ backgroundColor: opt.value }}
                   title={opt.label}
@@ -221,38 +331,45 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
             </div>
           </div>
 
-          <div>
-            <label className="block font-semibold text-foreground mb-1">
-              Invite Teammates by Gmail (Optional):
+          {/* Invite Teammates by Gmail */}
+          <div className="p-4 rounded-2xl bg-muted/20 border border-border space-y-2">
+            <label className="flex items-center gap-1.5 text-xs font-bold text-foreground">
+              <Mail size={14} className="text-primary" />
+              <span>Invite Teammate via Gmail (Optional)</span>
             </label>
-            <div className="relative flex items-center">
-              <input
-                type="email"
-                value={inviteGmail}
-                onChange={(e) => setInviteGmail(e.target.value)}
-                placeholder="colleague@gmail.com or @proaffiliaters.com"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-muted/60 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
-              />
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              An invitation request will be delivered to this teammate. Once approved, they join the project.
+            <input
+              type="email"
+              value={inviteGmail}
+              onChange={(e) => setInviteGmail(e.target.value)}
+              placeholder="colleague@gmail.com or @proaffiliaters.com"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-card border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary shadow-2xs"
+            />
+            <p className="text-[11px] text-muted-foreground">
+              An invitation request will be delivered to this teammate. Once approved, they join this project workspace.
             </p>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-4 border-t border-border mt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground bg-muted border border-border transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-5 py-2.5 rounded-xl bg-primary text-white font-bold hover:bg-primary/90 shadow-sm transition-all"
-            >
-              {projectToEdit ? "Save Changes" : "Create Project"}
-            </button>
+          {/* Drawer Footer Controls */}
+          <div className="px-6 py-4 -mx-6 -mb-6 border-t border-border bg-card/95 backdrop-blur-xs flex items-center justify-between shrink-0 sticky bottom-0">
+            <span className="text-[11px] text-muted-foreground hidden sm:inline">
+              * Required fields
+            </span>
+            <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2.5 rounded-xl text-muted-foreground hover:text-foreground bg-muted hover:bg-muted/80 border border-border font-bold transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-white font-extrabold shadow-md shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-[1.01] active:scale-[0.99]"
+              >
+                <Check size={16} className="stroke-[2.5]" />
+                <span>{projectToEdit ? "Save Changes" : "Create Project"}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>
@@ -262,8 +379,11 @@ export const ProjectModal: React.FC<ProjectModalProps> = ({
 
 /**
  * ============================================================================
- * FOOTER BLOCK: components/ProjectModal.tsx Implementation Notes
+ * FOOTER BLOCK: components/ProjectModal.tsx Implementation Notes & Caveats
  * ============================================================================
- * - Workflow: Validates Major Task parameters and updates state store.
+ * - Workflow: Validates project parameters, invokes addProject or updateProject,
+ *   and forwards invites to sendProjectInvite.
+ * - Presentation: Rendered as a full right-side slide-over drawer (no center modal).
+ * - Key Exports: ProjectModal React functional component.
  * ============================================================================
  */
