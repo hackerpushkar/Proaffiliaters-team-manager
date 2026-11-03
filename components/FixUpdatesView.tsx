@@ -138,45 +138,41 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
       {/* =========================================================================
           TOP COMMAND RIBBON WITH DEDICATED BUTTONS: + REPORT FIX & + POST UPDATE
           ========================================================================= */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 lg:p-5 rounded-xl bg-card border border-border shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-red-500/15 via-amber-500/10 to-primary/10 text-red-600 dark:text-red-400 border border-red-500/30 shrink-0">
-            <ShieldAlert size={24} />
+      {/* Top Header & Command Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-heading font-extrabold text-foreground tracking-tight">
+              Fix & Updates
+            </h1>
+            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
+              DIAGNOSTICS & RELEASES
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl lg:text-2xl font-heading font-extrabold text-foreground tracking-tight">
-                Fix & Updates
-              </h1>
-              <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                Diagnostics & Releases
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Identify system fixes, track root cause diagnostics, and publish platform version updates.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Track root cause diagnostics, resolve anomalies, and log platform version patches.
+          </p>
         </div>
 
         {/* 2 DEDICATED ACTION BUTTONS */}
-        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap shrink-0">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 self-start sm:self-auto">
           {/* Button 1: Post Update */}
           <button
             onClick={onOpenAddUpdateModal || onOpenAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-primary hover:bg-primary/90 shadow-sm transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-primary/90 shadow-2xs transition-all active:scale-98 whitespace-nowrap"
             title="Post a new platform or service update"
           >
-            <Rocket size={16} />
+            <Rocket size={14} />
             <span>Post Update</span>
           </button>
 
           {/* Button 2: Report Fix */}
           <button
             onClick={onOpenAddFixModal || onOpenAddModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 shadow-xs transition-all whitespace-nowrap"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 shadow-2xs transition-all whitespace-nowrap"
             title="Report a bug or system issue for investigation"
           >
-            <Wrench size={16} />
+            <Wrench size={14} />
             <span>Report Fix</span>
           </button>
         </div>
@@ -185,14 +181,14 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
       {/* =========================================================================
           CONTROLS & CATEGORY FILTER BAR (ALL / FIXES / UPDATES)
           ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-xs text-xs sm:text-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border shadow-2xs text-xs">
         {/* Left: View Mode Segmented Switch (All / Fixes / Updates) */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-muted/70 border border-border">
+        <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50 border border-border/40">
           <button
             onClick={() => setTypeFilter("all")}
-            className={`px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm transition-all ${
+            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
               typeFilter === "all"
-                ? "bg-card text-foreground shadow-xs border border-border font-extrabold"
+                ? "bg-card text-foreground shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
@@ -201,25 +197,25 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
 
           <button
             onClick={() => setTypeFilter("fixes")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
               typeFilter === "fixes"
-                ? "bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 shadow-xs font-extrabold"
-                : "text-muted-foreground hover:text-red-500"
+                ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25 shadow-2xs font-semibold"
+                : "text-muted-foreground hover:text-rose-500"
             }`}
           >
-            <Wrench size={14} />
+            <Wrench size={13} />
             <span>Fixes ({fixesCount})</span>
           </button>
 
           <button
             onClick={() => setTypeFilter("updates")}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold text-xs sm:text-sm transition-all ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
               typeFilter === "updates"
-                ? "bg-primary/15 text-primary border border-primary/30 shadow-xs font-extrabold"
+                ? "bg-primary/15 text-primary border border-primary/25 shadow-2xs font-semibold"
                 : "text-muted-foreground hover:text-primary"
             }`}
           >
-            <Rocket size={14} />
+            <Rocket size={13} />
             <span>Updates ({updatesCount})</span>
           </button>
         </div>

@@ -181,46 +181,36 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
 
   return (
     <div className="flex flex-col gap-5 animate-fadeIn pb-12">
-      {/* Top Banner & Command Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-4 sm:p-5 rounded-2xl bg-card border border-border shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 shrink-0">
-            <Sparkles size={22} />
+      {/* Top Header & Command Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-heading font-extrabold text-foreground tracking-tight">
+              Upcoming Features
+            </h1>
+            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
+              PIPELINE
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-foreground tracking-tight">
-                Upcoming Features
-              </h1>
-              <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 uppercase">
-                Research & Execution Pipeline
-              </span>
-            </div>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Break down ideas into research points, attach reference docs, and 1-click start to generate sprint tasks.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Break down ideas into research points, specs, and convert to sprint projects.
+          </p>
         </div>
 
         <button
           onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 px-4 py-2 rounded-xl font-bold text-xs text-white bg-primary hover:bg-primary/90 shadow-sm transition-all shrink-0 active:scale-95"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-primary/90 shadow-2xs transition-all active:scale-98 shrink-0 self-start sm:self-auto"
         >
-          <Plus size={15} />
+          <Plus size={14} />
           <span>Propose Feature</span>
         </button>
       </div>
 
       {/* Filter and Phase Ribbon */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-card border border-border shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border shadow-2xs">
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
-            <Filter size={14} />
-            <span className="font-medium">Phase:</span>
-          </div>
-
           {/* Phase Filter Tabs */}
-          <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/40 overflow-x-auto">
             {[
               { id: "all", label: "All Phases", icon: "✨" },
               { id: "thinking", label: "Thinking", icon: "💡" },
@@ -232,10 +222,10 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
               <button
                 key={tab.id}
                 onClick={() => setStatusFilter(tab.id)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all shrink-0 ${
                   statusFilter === tab.id
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-muted/60 text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
+                    ? "bg-card text-foreground shadow-2xs font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -251,7 +241,7 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-3 py-1.5 text-xs rounded-xl bg-card border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+            className="px-2.5 py-1 text-xs rounded-lg bg-card border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
           >
             <option value="all">All Priorities</option>
             <option value="critical">Critical</option>

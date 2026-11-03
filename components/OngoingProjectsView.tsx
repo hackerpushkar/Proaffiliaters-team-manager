@@ -63,6 +63,8 @@ import {
   Globe,
   Pin,
   Zap,
+  Eye,
+  EyeOff,
   Grip,
   Pause,
   Play,
@@ -1040,67 +1042,63 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
   // VIEW TIER 1: ALL PROJECTS OVERVIEW CARDS (LANDING HUB)
   // =========================================================================
   return (
-    <div className="flex flex-col gap-6 animate-fadeIn pb-16">
-      {/* Top Banner & KPI Ribbon */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 rounded-2xl bg-card border border-border shadow-xs">
-        <div className="flex items-center gap-3.5">
-          <div className="p-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 shrink-0">
-            <Layers size={24} />
+    <div className="flex flex-col gap-5 animate-fadeIn pb-16">
+      {/* Top Header & High-Density Metrics Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-heading font-extrabold text-foreground tracking-tight">
+              Ongoing Projects
+            </h1>
+            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-primary/10 text-primary border border-primary/20">
+              INITIATIVES HUB
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-heading font-extrabold text-foreground tracking-tight">
-                Ongoing Projects
-              </h1>
-              <span className="px-2.5 py-0.5 text-xs font-bold rounded-full bg-primary/10 text-primary border border-primary/20 uppercase">
-                Initiatives Hub
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
-              Select a project to enter its dedicated Kanban, Hierarchy Tree, and sprint task workspace.
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Dedicated multi-view workspaces with drag-and-drop priority sequencing.
+          </p>
         </div>
 
-        {/* Live Global KPIs */}
-        <div className="flex items-center flex-wrap gap-3 shrink-0">
-          <div className="flex items-center gap-3 px-4 py-2 rounded-xl bg-muted/60 border border-border">
-            <div className="text-center">
-              <div className="text-xs font-bold text-muted-foreground">Active Projects</div>
-              <div className="text-base font-heading font-extrabold text-foreground">{activeProjectsCount}</div>
+        {/* Live Metrics Tiles & New Project Action */}
+        <div className="flex items-center flex-wrap gap-2.5">
+          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-card border border-border shadow-2xs text-xs font-mono">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="text-muted-foreground">Active:</span>
+              <strong className="text-foreground">{activeProjectsCount}</strong>
             </div>
-            <div className="h-6 w-px bg-border" />
-            <div className="text-center">
-              <div className="text-xs font-bold text-muted-foreground">Pending Tasks</div>
-              <div className="text-base font-heading font-extrabold text-primary">{pendingTasksCount}</div>
+            <div className="h-3.5 w-px bg-border" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Pending:</span>
+              <strong className="text-primary">{pendingTasksCount}</strong>
             </div>
-            <div className="h-6 w-px bg-border" />
-            <div className="text-center">
-              <div className="text-xs font-bold text-muted-foreground">Progress</div>
-              <div className="text-base font-heading font-extrabold text-emerald-500">{globalProgress}%</div>
+            <div className="h-3.5 w-px bg-border" />
+            <div className="flex items-center gap-1.5">
+              <span className="text-muted-foreground">Progress:</span>
+              <strong className="text-emerald-500">{globalProgress}%</strong>
             </div>
           </div>
 
           <button
             onClick={onOpenNewProjectModal}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-primary hover:bg-primary/90 shadow-sm transition-all shrink-0 active:scale-95"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-primary/90 shadow-2xs transition-all active:scale-98"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             <span>New Project</span>
           </button>
         </div>
       </div>
 
       {/* Filter and Category Ribbon */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-card border border-border shadow-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border shadow-2xs">
         <div className="flex flex-wrap items-center gap-2">
           {/* Status Tabs */}
-          <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-xl border border-border/60">
+          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/40">
             <button
               onClick={() => setProjectStatusFilter("all")}
-              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                 projectStatusFilter === "all"
-                  ? "bg-card text-foreground shadow-xs border border-border"
+                  ? "bg-card text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1108,9 +1106,9 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
             </button>
             <button
               onClick={() => setProjectStatusFilter("active")}
-              className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                 projectStatusFilter === "active"
-                  ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-xs border border-border"
+                  ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1118,15 +1116,15 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
             </button>
             <button
               onClick={() => setProjectStatusFilter("paused")}
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                 projectStatusFilter === "paused"
-                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-xs border border-amber-500/30 font-extrabold"
+                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
               <span>⏸ On Hold</span>
               {holdProjectsCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                <span className="px-1 py-0.2 rounded font-mono text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400">
                   {holdProjectsCount}
                 </span>
               )}
@@ -1136,9 +1134,9 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                 setProjectStatusFilter("completed");
                 setShowClosedProjects(true);
               }}
-              className={`flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
                 projectStatusFilter === "completed"
-                  ? "bg-card text-foreground shadow-xs border border-border"
+                  ? "bg-card text-foreground shadow-2xs font-semibold"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -1146,20 +1144,16 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
             </button>
           </div>
 
-          <div className="h-4 w-[1px] bg-border mx-1 hidden sm:block" />
+          <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
 
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
-            <Filter size={14} />
-            <span className="font-medium">Category:</span>
-          </div>
-
+          {/* Category Chips */}
           <div className="flex items-center gap-1 overflow-x-auto py-0.5">
             <button
               onClick={() => setCategoryFilter("all")}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
                 categoryFilter === "all"
-                  ? "bg-primary text-primary-foreground shadow-xs"
-                  : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+                  ? "bg-primary/10 text-primary border border-primary/25 font-semibold"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground border border-transparent"
               }`}
             >
               All Categories
@@ -1168,10 +1162,10 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
               <button
                 key={cat}
                 onClick={() => setCategoryFilter(cat)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
                   categoryFilter === cat
-                    ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-muted/60 text-muted-foreground hover:text-foreground border border-border"
+                    ? "bg-primary/10 text-primary border border-primary/25 font-semibold"
+                    : "bg-muted/40 text-muted-foreground hover:text-foreground border border-transparent"
                 }`}
               >
                 {cat}
@@ -1188,13 +1182,14 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
               setProjectStatusFilter("all");
             }
           }}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
             showClosedProjects
-              ? "bg-muted text-foreground border-primary/40"
-              : "bg-muted/40 text-muted-foreground hover:text-foreground border-border"
+              ? "bg-muted text-foreground border-border"
+              : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50"
           }`}
         >
-          {showClosedProjects ? "👁️ Showing Archived" : "Hide Archived Projects"}
+          {showClosedProjects ? <EyeOff size={13} /> : <Eye size={13} />}
+          <span>{showClosedProjects ? "Hide Archived" : "Show Archived"}</span>
         </button>
       </div>
 
@@ -1282,14 +1277,14 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   if (draggedProjectId) return;
                   setSelectedProjectId(proj.id);
                 }}
-                className={`group relative flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-card border shadow-xs transition-all duration-300 cursor-pointer overflow-hidden ${
+                className={`group relative flex flex-col xl:flex-row xl:items-center justify-between gap-4 p-4 sm:p-4.5 rounded-2xl bg-card border shadow-2xs transition-all duration-200 cursor-pointer overflow-hidden ${
                   draggedProjectId === proj.id
-                    ? "opacity-30 scale-[0.99] border-dashed border-primary shadow-inner"
+                    ? "opacity-30 scale-[0.99] border-dashed border-primary"
                     : dragOverProjectId === proj.id
                     ? projectDropPosition === "before"
-                      ? "border-primary shadow-md ring-2 ring-primary/40 -translate-y-0.5"
-                      : "border-primary shadow-md ring-2 ring-primary/40 translate-y-0.5"
-                    : "border-border hover:border-primary/50 hover:shadow-lg"
+                      ? "border-primary shadow-sm ring-2 ring-primary/30 -translate-y-0.5"
+                      : "border-primary shadow-sm ring-2 ring-primary/30 translate-y-0.5"
+                    : "border-border/80 hover:border-primary/40 hover:shadow-xs"
                 }`}
               >
                 {/* Drop indicator bar on top */}
@@ -1301,15 +1296,9 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-primary to-purple-600 rounded-b-2xl z-20 animate-pulse" />
                 )}
 
-                {/* Left Accent indicator line with project color */}
-                <div
-                  className="absolute left-0 top-0 bottom-0 w-1.5 transition-all"
-                  style={{ backgroundColor: proj.color || "#4f6ef7" }}
-                />
-
                 {/* Left region: 9-Dot Drag Handle + Main info */}
-                <div className="flex items-start sm:items-center gap-2.5 sm:gap-3 flex-1 min-w-0 pl-1 sm:pl-2">
-                  {/* 9-Dot Drag Handle (3x3 dots grip icon) */}
+                <div className="flex items-start sm:items-center gap-3 flex-1 min-w-0">
+                  {/* 9-Dot Drag Handle */}
                   <div
                     data-drag-handle="true"
                     draggable={false}
@@ -1325,113 +1314,114 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                     onClick={(e) => {
                       e.stopPropagation();
                     }}
-                    className="flex items-center justify-center w-8 h-8 rounded-xl text-muted-foreground/40 hover:text-primary hover:bg-primary/10 active:bg-primary/20 cursor-grab active:cursor-grabbing transition-all shrink-0 self-start sm:self-center group/handle border border-transparent hover:border-primary/20 select-none"
-                    title="Hold and drag up or down to reposition"
+                    className="flex items-center justify-center w-7 h-7 rounded-lg text-muted-foreground/30 hover:text-foreground hover:bg-muted/80 cursor-grab active:cursor-grabbing transition-all shrink-0 self-start sm:self-center select-none"
+                    title="Hold and drag to reorder"
                     aria-label="Reorder project"
                   >
-                    <Grip size={18} className="group-hover/handle:scale-110 group-active/handle:scale-95 transition-transform" />
+                    <Grip size={15} />
                   </div>
 
                   {/* Main Content Block */}
-                  <div className="flex-1 min-w-0 space-y-2">
+                  <div className="flex-1 min-w-0 space-y-1.5">
                     {/* Category, Status & Lead badges */}
                     <div className="flex flex-wrap items-center gap-2">
                       <span
-                        className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-xs"
+                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
                         style={{ backgroundColor: proj.color || "#4f6ef7" }}
-                      >
+                      />
+
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/60">
                         {proj.category}
                       </span>
 
                       {proj.status === "paused" ? (
-                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shadow-xs">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                           <Pause size={10} className="fill-current" />
                           <span>On Hold</span>
                         </span>
+                      ) : isCompleted ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
+                          <span>Closed</span>
+                        </span>
                       ) : (
-                        <span
-                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                            isCompleted
-                              ? "bg-muted text-muted-foreground border-border"
-                              : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                          }`}
-                        >
-                          {isCompleted ? "Closed" : "Active"}
+                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span>Active</span>
                         </span>
                       )}
 
-                      {/* Lead Info Pill */}
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-muted/60 text-[11px] font-semibold text-muted-foreground border border-border/40">
-                        <User size={12} className="text-primary" />
-                        <span>Lead: <strong className="text-foreground">{proj.lead}</strong></span>
+                      {/* Lead Info */}
+                      <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                        <User size={11} className="text-muted-foreground/70" />
+                        <span>Lead: <strong className="text-foreground font-semibold">{proj.lead}</strong></span>
                       </div>
                     </div>
 
                     {/* Title & Description */}
                     <div>
-                      <h3 className="text-base sm:text-lg font-heading font-extrabold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                      <h3 className="text-sm sm:text-base font-heading font-semibold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
                         <span>{proj.name}</span>
-                        <ChevronRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                        <ChevronRight size={15} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
-                        {proj.description || "No project description provided."}
-                      </p>
+                      {proj.description && (
+                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5 font-normal leading-normal">
+                          {proj.description}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
-                {/* Middle info: Team Collaborators & Task Progress Bar */}
-                <div className="flex flex-wrap sm:flex-nowrap items-center gap-5 xl:px-5 py-2.5 xl:py-0 border-y xl:border-y-0 xl:border-x border-border/60 shrink-0">
-                  {/* Collaborators */}
-                  <div className="space-y-1 min-w-[140px]">
-                    <div className="flex items-center justify-between text-[11px] font-bold text-muted-foreground">
-                      <span>Team ({joinedMembers.length})</span>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setInviteModalProject(proj);
-                        }}
-                        className="text-primary hover:underline flex items-center gap-0.5 text-[10px]"
-                      >
-                        <UserPlus size={10} />
-                        <span>+ Invite</span>
-                      </button>
-                    </div>
+                {/* Right info: Team Collaborators & Task Progress Bar & Action Buttons */}
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-4 xl:gap-6 shrink-0 pt-2 xl:pt-0">
+                  {/* Collaborators Stack */}
+                  <div className="flex items-center gap-2">
                     <div className="flex items-center -space-x-1.5">
                       {joinedMembers.length === 0 ? (
                         <span className="text-[10px] text-muted-foreground italic">No extra members</span>
                       ) : (
-                        joinedMembers.slice(0, 4).map((m) => (
+                        joinedMembers.slice(0, 3).map((m) => (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
                             key={m?.id}
-                            src={m?.avatar}
+                            src={m?.avatar || "/founder.jpg"}
                             alt={m?.name}
                             title={`${m?.name} (${m?.role})`}
-                            className="w-6 h-6 rounded-full object-cover border-2 border-card ring-1 ring-border"
+                            className="w-6 h-6 rounded-full object-cover border-2 border-card ring-1 ring-border shadow-2xs"
                           />
                         ))
                       )}
-                      {joinedMembers.length > 4 && (
-                        <span className="w-6 h-6 rounded-full bg-muted text-[10px] font-bold flex items-center justify-center border-2 border-card">
-                          +{joinedMembers.length - 4}
+                      {joinedMembers.length > 3 && (
+                        <span className="w-6 h-6 rounded-full bg-muted text-[10px] font-mono font-semibold text-muted-foreground flex items-center justify-center border-2 border-card">
+                          +{joinedMembers.length - 3}
                         </span>
                       )}
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setInviteModalProject(proj);
+                      }}
+                      className="text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors"
+                      title="Invite collaborators"
+                    >
+                      + Invite
+                    </button>
                   </div>
 
-                  {/* Progress Bar */}
-                  <div className="space-y-1 min-w-[160px]">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground text-[11px] font-medium">
+                  {/* Compact Progress Bar */}
+                  <div className="min-w-[130px] space-y-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-muted-foreground">
                         {completedCount}/{totalCount} tasks
                       </span>
-                      <span className="font-extrabold text-foreground text-xs">{progress}%</span>
+                      <span className="font-semibold text-foreground">{progress}%</span>
                     </div>
-                    <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-muted/80 rounded-full h-1.5 overflow-hidden">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
+                        className="h-full rounded-full transition-all duration-300"
                         style={{
                           width: `${progress}%`,
                           backgroundColor: proj.color || "#4f6ef7",
@@ -1439,45 +1429,45 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                       />
                     </div>
                   </div>
-                </div>
 
-                {/* Right Action Block */}
-                <div className="flex items-center gap-2 shrink-0 pt-2 xl:pt-0">
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSelectedProjectId(proj.id);
-                    }}
-                    className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-primary via-indigo-600 to-primary hover:brightness-110 active:scale-95 transition-all flex items-center gap-2 shadow-sm shadow-primary/20"
-                  >
-                    <span>Continue Workspace</span>
-                    <ArrowRight size={14} />
-                  </button>
+                  {/* Right Action Block */}
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedProjectId(proj.id);
+                      }}
+                      className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white border border-primary/20 transition-all flex items-center gap-1.5 shadow-2xs"
+                    >
+                      <span>Workspace</span>
+                      <ArrowRight size={13} />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenEditProjectModal(proj);
-                    }}
-                    className="p-2 rounded-xl border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
-                    title="Edit Project"
-                  >
-                    <Edit size={14} />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenEditProjectModal(proj);
+                      }}
+                      className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-foreground hover:bg-muted transition-all"
+                      title="Edit Project"
+                    >
+                      <Edit size={14} />
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (confirm(`Delete project "${proj.name}"?`)) deleteProject(proj.id);
-                    }}
-                    className="p-2 rounded-xl border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
-                    title="Delete Project"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`Delete project "${proj.name}"?`)) deleteProject(proj.id);
+                      }}
+                      className="p-1.5 rounded-lg text-muted-foreground/60 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                      title="Delete Project"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             );
