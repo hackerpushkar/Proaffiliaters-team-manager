@@ -1025,6 +1025,13 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
           onClose={() => setInviteModalProject(null)}
           project={inviteModalProject}
         />
+
+        {/* Task Slide-Over Drawer ("Task Slider") */}
+        <TaskSlideOverDrawer
+          taskId={activeDrawerTaskId}
+          onClose={() => setActiveDrawerTaskId(null)}
+          onOpenEditModal={(task) => onOpenEditTaskModal(task)}
+        />
       </div>
     );
   }
