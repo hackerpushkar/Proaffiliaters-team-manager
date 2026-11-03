@@ -247,7 +247,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = "/founder.jpg";
                       }}
-                      className="w-5.5 h-5.5 rounded-full object-cover border border-border shadow-2xs shrink-0"
+                      className="w-6 h-6 min-w-[24px] min-h-[24px] max-w-[24px] max-h-[24px] rounded-full object-cover border border-border shadow-2xs shrink-0"
                     />
                     <div className="min-w-0">
                       <p className="text-[11px] font-semibold text-foreground truncate">{member.name}</p>

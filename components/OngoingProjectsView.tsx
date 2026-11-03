@@ -63,8 +63,6 @@ import {
   Globe,
   Pin,
   Zap,
-  Eye,
-  EyeOff,
   Grip,
   Pause,
   Play,
@@ -1173,24 +1171,6 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
             ))}
           </div>
         </div>
-
-        {/* Closed Projects Toggle */}
-        <button
-          onClick={() => {
-            setShowClosedProjects(!showClosedProjects);
-            if (showClosedProjects && projectStatusFilter === "completed") {
-              setProjectStatusFilter("all");
-            }
-          }}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
-            showClosedProjects
-              ? "bg-muted text-foreground border-border"
-              : "text-muted-foreground hover:text-foreground border-transparent hover:bg-muted/50"
-          }`}
-        >
-          {showClosedProjects ? <EyeOff size={13} /> : <Eye size={13} />}
-          <span>{showClosedProjects ? "Hide Archived" : "Show Archived"}</span>
-        </button>
       </div>
 
       {/* Projects Cards Grid */}
