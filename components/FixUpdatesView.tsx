@@ -134,129 +134,94 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      {/* =========================================================================
-          TOP COMMAND RIBBON WITH DEDICATED BUTTONS: + REPORT FIX & + POST UPDATE
-          ========================================================================= */}
-      {/* Top Header & Command Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+    <div className="flex flex-col gap-5 max-w-[1600px]">
+      {/* Top Header & Command Bar matching Figma */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-heading font-extrabold text-foreground tracking-tight">
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading font-extrabold text-[25px] tracking-[-0.8px] text-foreground leading-tight">
               Fix & Updates
             </h1>
-            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-              DIAGNOSTICS & RELEASES
-            </span>
+            <span className="eyebrow-tag">DIAGNOSTICS & RELEASES</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Track root cause diagnostics, resolve anomalies, and log platform version patches.
+          <p className="text-[12px] text-muted-foreground mt-1">
+            Track root cause diagnostics, resolve anomalies, and log platform patches.
           </p>
         </div>
 
         {/* 2 DEDICATED ACTION BUTTONS */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap shrink-0 self-start sm:self-auto">
-          {/* Button 1: Post Update */}
+        <div className="flex items-center gap-2.5">
           <button
             onClick={onOpenAddUpdateModal || onOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-primary/90 shadow-2xs transition-all active:scale-98 whitespace-nowrap"
-            title="Post a new platform or service update"
+            className="h-[38px] px-4 rounded-[10px] bg-primary hover:bg-[#3d50df] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-[0_5px_13px_rgba(82,104,246,0.25)] transition-all cursor-pointer whitespace-nowrap"
           >
             <Rocket size={14} />
-            <span>Post Update</span>
+            <span>Post update</span>
           </button>
 
-          {/* Button 2: Report Fix */}
           <button
             onClick={onOpenAddFixModal || onOpenAddModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/25 shadow-2xs transition-all whitespace-nowrap"
-            title="Report a bug or system issue for investigation"
+            className="h-[38px] px-4 rounded-[10px] bg-[#fff0f1] dark:bg-red-500/10 hover:bg-[#ffe2e5] border border-[#ffd6d9] dark:border-red-500/30 text-[#e94d58] text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer whitespace-nowrap"
           >
             <Wrench size={14} />
-            <span>Report Fix</span>
+            <span>Report fix</span>
           </button>
         </div>
       </div>
 
-      {/* =========================================================================
-          CONTROLS & CATEGORY FILTER BAR (ALL / FIXES / UPDATES)
-          ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border shadow-2xs text-xs">
+      {/* CONTROLS & CATEGORY FILTER BAR matching Figma */}
+      <div className="min-h-[54px] bg-card border border-border rounded-[13px] p-[7px_12px] flex items-center justify-between gap-3 flex-wrap">
         {/* Left: View Mode Segmented Switch (All / Fixes / Updates) */}
-        <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50 border border-border/40">
+        <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl">
           <button
             onClick={() => setTypeFilter("all")}
-            className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
               typeFilter === "all"
-                ? "bg-card text-foreground shadow-2xs font-semibold"
+                ? "bg-card text-primary shadow-xs"
                 : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            All Items ({fixes.length})
+            All items ({fixes.length})
           </button>
 
           <button
             onClick={() => setTypeFilter("fixes")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
               typeFilter === "fixes"
-                ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/25 shadow-2xs font-semibold"
-                : "text-muted-foreground hover:text-rose-500"
+                ? "bg-card text-primary shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Wrench size={13} />
-            <span>Fixes ({fixesCount})</span>
+            Fixes ({fixesCount})
           </button>
 
           <button
             onClick={() => setTypeFilter("updates")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
               typeFilter === "updates"
-                ? "bg-primary/15 text-primary border border-primary/25 shadow-2xs font-semibold"
-                : "text-muted-foreground hover:text-primary"
+                ? "bg-card text-primary shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
-            <Rocket size={13} />
-            <span>Updates ({updatesCount})</span>
+            Updates ({updatesCount})
           </button>
         </div>
 
-        {/* Right: Severity and Status Filters */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Severity Buttons */}
-          <div className="flex items-center gap-1 overflow-x-auto">
-            {["all", "critical", "major", "minor", "patch"].map((sev) => (
-              <button
-                key={sev}
-                onClick={() => setSeverityFilter(sev)}
-                className={`px-2.5 py-1.5 rounded-lg text-xs font-bold capitalize transition-all ${
-                  severityFilter === sev
-                    ? "bg-primary text-white shadow-xs"
-                    : "bg-muted/80 text-muted-foreground hover:text-foreground border border-border"
-                }`}
-              >
-                {sev === "all" ? "All" : sev}
-              </button>
-            ))}
-          </div>
-
-          <span className="text-border">|</span>
-
-          {/* Status Dropdown */}
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs text-muted-foreground font-semibold">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-1.5 text-xs sm:text-sm rounded-lg bg-card border border-border text-foreground font-semibold focus:outline-none focus:ring-1 focus:ring-primary shadow-xs"
+        {/* Right: Severity Filter Buttons */}
+        <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+          {["all", "critical", "major", "minor", "patch"].map((sev) => (
+            <button
+              key={sev}
+              onClick={() => setSeverityFilter(sev)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold capitalize transition-all shrink-0 cursor-pointer ${
+                severityFilter === sev
+                  ? "bg-primary/10 text-primary border border-primary/25"
+                  : "bg-muted/40 text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <option value="all">All Statuses</option>
-              <option value="reported">Reported</option>
-              <option value="investigating">Investigating</option>
-              <option value="fixing">Fixing</option>
-              <option value="verified">Verified</option>
-              <option value="deployed">Deployed</option>
-            </select>
-          </div>
+              {sev === "all" ? "All" : sev}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -301,62 +266,45 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
             return (
               <div
                 key={item.id}
-                className={`p-4 sm:p-5 rounded-xl border shadow-xs transition-all flex flex-col gap-3.5 ${
-                  isUpdate
-                    ? "bg-card border-border hover:border-primary/50"
-                    : "bg-card border-border hover:border-red-500/50"
-                }`}
+                className="bg-card border border-border rounded-[14px] p-5 shadow-2xs hover:border-[#cfd4ff] dark:hover:border-primary/50 transition-all flex flex-col gap-3 group"
               >
-                {/* Header Row: Type Badge, Component, Severity, Title & Actions */}
+                {/* Header Row: Figma Pills, Title & Quick Actions */}
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap mb-1.5">
+                    <div className="flex items-center gap-2 flex-wrap mb-2">
                       {/* TYPE INDICATOR */}
                       {isUpdate ? (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-extrabold rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 uppercase tracking-wide">
-                          <Rocket size={12} />
-                          Update
-                        </span>
+                        <span className="pill pill-green">UPDATE</span>
                       ) : (
-                        <span className="flex items-center gap-1 px-2.5 py-0.5 text-xs font-extrabold rounded-md bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/30 uppercase tracking-wide">
-                          <Wrench size={12} />
-                          Fix
-                        </span>
+                        <span className="pill pill-red">FIX</span>
                       )}
 
                       {/* SEVERITY BADGE */}
                       <span
-                        className={`px-2.5 py-0.5 text-xs font-bold rounded-md border uppercase tracking-wider ${getSeverityBadge(
-                          item.severity
-                        )}`}
+                        className={`pill ${
+                          item.severity === "critical"
+                            ? "pill-red"
+                            : item.severity === "major"
+                            ? "pill-amber"
+                            : "pill"
+                        }`}
                       >
-                        {item.severity}
+                        {item.severity.toUpperCase()}
                       </span>
 
                       {/* STATUS BADGE */}
-                      <span
-                        className={`px-2.5 py-0.5 text-xs font-semibold rounded-md border capitalize ${getStatusBadge(
-                          item.status
-                        )}`}
-                      >
+                      <span className="pill pill-purple capitalize">
                         {item.status}
                       </span>
 
                       {/* AFFECTED COMPONENT */}
-                      <span className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-muted border border-border text-foreground text-xs font-mono font-bold">
-                        <Server size={12} className="text-primary" />
-                        {item.affectedComponent}
-                      </span>
-
-                      {/* VERSION TAG */}
-                      <span className="flex items-center gap-1 text-xs font-mono text-muted-foreground font-semibold">
-                        <GitCommit size={12} />
-                        {item.versionTag}
+                      <span className="pill">
+                        {item.affectedComponent} → {item.versionTag}
                       </span>
                     </div>
 
-                    {/* ITEM TITLE (INCREASED FONT SIZE: 16px - 18px) */}
-                    <h3 className="text-base sm:text-lg font-heading font-extrabold text-foreground tracking-tight leading-snug">
+                    {/* ITEM TITLE */}
+                    <h3 className="font-heading font-bold text-[15px] text-foreground tracking-tight leading-snug group-hover:text-primary transition-colors">
                       {item.name}
                     </h3>
                   </div>
@@ -366,7 +314,7 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
                     <select
                       value={item.status}
                       onChange={(e) => updateFix(item.id, { status: e.target.value as FixStatus })}
-                      className="px-3 py-1.5 text-xs sm:text-sm font-bold rounded-lg bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-xs cursor-pointer"
+                      className="px-3 py-1.5 text-[11px] font-bold rounded-[8px] bg-muted/60 border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs cursor-pointer"
                     >
                       <option value="reported">Reported</option>
                       <option value="investigating">Investigating</option>
@@ -377,10 +325,10 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
 
                     <button
                       onClick={() => onOpenEditModal(item)}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-foreground bg-muted border border-border hover:border-primary/40 transition-colors"
+                      className="p-1.5 rounded-[8px] text-muted-foreground hover:text-foreground bg-muted/60 border border-border hover:border-primary/40 transition-colors cursor-pointer"
                       title="Edit Details"
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={13} />
                     </button>
 
                     <button
@@ -389,51 +337,46 @@ export const FixUpdatesView: React.FC<FixUpdatesViewProps> = ({
                           deleteFix(item.id);
                         }
                       }}
-                      className="p-2 rounded-lg text-muted-foreground hover:text-red-500 bg-muted border border-border hover:border-red-500/20 transition-colors"
+                      className="p-1.5 rounded-[8px] text-muted-foreground hover:text-red-500 bg-muted/60 border border-border hover:border-red-500/20 transition-colors cursor-pointer"
                       title="Delete Item"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
 
-                {/* Description & Root Cause Block (INCREASED FONT SIZE: 14px - 16px) */}
-                <div className={`p-4 rounded-xl border ${
-                  isUpdate
-                    ? "bg-muted/30 border-border"
-                    : "bg-muted/40 border-border"
-                }`}>
-                  <div className="text-xs font-extrabold text-muted-foreground uppercase tracking-wider mb-1.5">
-                    {isUpdate ? "Update Highlights & Summary:" : "Root Cause & Symptom:"}
-                  </div>
-                  <p className="text-sm sm:text-base text-foreground leading-relaxed whitespace-pre-wrap font-normal">
+                {/* Description & Root Cause Block matching Figma .symptom */}
+                <div className="border border-border rounded-[10px] p-[12px_14px] bg-[#f8f9fc] dark:bg-muted/30">
+                  <span className="text-[8px] font-extrabold tracking-[0.8px] text-[#8590a2] dark:text-muted-foreground uppercase block">
+                    {isUpdate ? "UPDATE HIGHLIGHTS & SUMMARY:" : "ROOT CAUSE & SYMPTOM:"}
+                  </span>
+                  <p className="text-[11px] text-foreground mt-1.5 leading-relaxed whitespace-pre-wrap font-normal">
                     {item.description}
                   </p>
 
                   {/* Resolution Notes / Changelog */}
                   {item.resolutionNotes && (
-                    <div className="mt-3.5 pt-3 border-t border-border/80">
-                      <div className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                        <CheckCircle2 size={14} />
-                        {isUpdate ? "Release Changelog & Notes:" : "Resolution & Patch Notes:"}
-                      </div>
-                      <p className="text-sm text-muted-foreground leading-relaxed font-normal">
+                    <div className="mt-2.5 pt-2 border-t border-border/80">
+                      <span className="text-[8px] font-extrabold text-[#0da77c] uppercase tracking-wider block">
+                        {isUpdate ? "RELEASE CHANGELOG & NOTES:" : "RESOLUTION & PATCH NOTES:"}
+                      </span>
+                      <p className="text-[10px] text-muted-foreground mt-1 leading-relaxed">
                         {item.resolutionNotes}
                       </p>
                     </div>
                   )}
                 </div>
 
-                {/* Footer: Reporter & Dates (Clear 12px - 13px) */}
-                <div className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground pt-0.5 flex-wrap gap-2">
+                {/* Footer: Reporter & Dates */}
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1 border-t border-border flex-wrap gap-2">
                   <span>
                     Reported by: <strong className="text-foreground">{item.reportedBy}</strong>
                   </span>
                   <div className="flex items-center gap-3">
-                    <span>Logged: {item.createdAt}</span>
+                    <span>Logged: {item.createdAt ? item.createdAt.split("T")[0] : "2026-10-28"}</span>
                     {item.resolvedAt && (
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                        <Check size={13} />
+                      <span className="text-[#0da77c] font-bold flex items-center gap-1">
+                        <Check size={12} />
                         Deployed: {item.resolvedAt}
                       </span>
                     )}

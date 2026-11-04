@@ -322,32 +322,35 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
       <div className="flex flex-col gap-6 animate-fadeIn pb-16">
         {/* Navigation Breadcrumb Bar */}
         <div className="flex items-center justify-between pb-3 border-b border-border">
-          <button
-            onClick={() => setSelectedProjectId(null)}
-            className="inline-flex items-center gap-2 text-xs font-bold text-muted-foreground hover:text-foreground p-2 rounded-xl hover:bg-muted/60 transition-colors"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to All Projects</span>
-          </button>
+          <div className="text-[11px] text-[#8a93a4] flex items-center gap-1.5">
+            <button
+              onClick={() => setSelectedProjectId(null)}
+              className="hover:text-primary transition-colors cursor-pointer font-medium"
+            >
+              Ongoing Projects
+            </button>
+            <span className="text-[#bdc2cc]">/</span>
+            <span className="text-foreground font-semibold">{focusedProject.category}</span>
+          </div>
 
           <div className="flex items-center gap-2">
             {/* Hold / Resume Project */}
             {focusedProject.status === "paused" ? (
               <button
                 onClick={() => updateProject(focusedProject.id, { status: "active" })}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-[10px] text-xs font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
                 title="Resume project sprint"
               >
-                <Play size={14} className="fill-current" />
+                <Play size={13} className="fill-current" />
                 <span>Resume Project</span>
               </button>
             ) : !isClosed ? (
               <button
                 onClick={() => updateProject(focusedProject.id, { status: "paused" })}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-[10px] text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
                 title="Put this project on hold"
               >
-                <Pause size={14} className="fill-current" />
+                <Pause size={13} className="fill-current" />
                 <span>Put On Hold</span>
               </button>
             ) : null}
@@ -356,9 +359,9 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
             {isClosed ? (
               <button
                 onClick={() => updateProject(focusedProject.id, { status: "active" })}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-[10px] text-xs font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 hover:bg-amber-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                <ArchiveRestore size={14} />
+                <ArchiveRestore size={13} />
                 <span>Reopen Project</span>
               </button>
             ) : (
@@ -368,132 +371,100 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                     updateProject(focusedProject.id, { status: "completed" });
                   }
                 }}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all flex items-center gap-1.5"
+                className="px-3 py-1.5 rounded-[10px] text-xs font-bold bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground border border-border transition-all flex items-center gap-1.5 cursor-pointer"
               >
-                <Archive size={14} />
+                <Archive size={13} />
                 <span>Close Project</span>
               </button>
             )}
 
+            {/* Share / Teammates */}
+            <button
+              onClick={() => setInviteModalProject(focusedProject)}
+              className="h-[38px] px-3.5 rounded-[10px] border border-border bg-card hover:bg-muted text-[11px] font-bold text-foreground flex items-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <UserPlus size={14} className="text-muted-foreground" />
+              <span>Share</span>
+            </button>
+
             {/* Full Task Modal Button */}
             <button
               onClick={() => onOpenAddTaskModal(focusedProject.id)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm transition-all flex items-center gap-1.5"
+              className="h-[38px] px-4 rounded-[10px] bg-primary hover:bg-[#3d50df] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-[0_5px_13px_rgba(82,104,246,0.25)] transition-all cursor-pointer"
             >
-              <Plus size={14} />
-              <span>Add Task</span>
+              <Plus size={15} />
+              <span>Add task</span>
             </button>
           </div>
         </div>
 
-        {/* On Hold Notification Ribbon if paused */}
-        {focusedProject.status === "paused" && (
-          <div className="flex items-center justify-between p-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 shadow-xs">
-            <div className="flex items-center gap-2.5 text-xs font-semibold">
-              <Pause size={15} className="fill-current shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>This project is currently <strong>On Hold</strong>. Sprint tasks and deliverables are paused.</span>
-            </div>
-            <button
-              onClick={() => updateProject(focusedProject.id, { status: "active" })}
-              className="px-3 py-1 rounded-xl text-xs font-bold bg-amber-500 text-white hover:bg-amber-600 shadow-xs transition-colors shrink-0 flex items-center gap-1"
-            >
-              <Play size={12} className="fill-current" />
-              <span>Resume Sprint</span>
-            </button>
-          </div>
-        )}
-
-        {/* Focused Project Header Banner */}
-        <div className="bg-card border border-border rounded-2xl p-6 shadow-sm relative overflow-hidden">
-          <div
-            className="absolute top-0 left-0 right-0 h-1.5"
-            style={{ backgroundColor: focusedProject.color || "#4f6ef7" }}
-          />
-
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-3 flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-white"
-                  style={{ backgroundColor: focusedProject.color || "#4f6ef7" }}
-                >
-                  {focusedProject.category}
-                </span>
-
-                {focusedProject.status === "paused" ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 shadow-xs">
-                    <Pause size={10} className="fill-current" />
-                    <span>On Hold</span>
-                  </span>
-                ) : (
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${
-                      isClosed
-                        ? "bg-muted text-muted-foreground border-border"
-                        : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                    }`}
-                  >
-                    {isClosed ? "Archived" : "Active Sprint"}
-                  </span>
-                )}
-
-                <div className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <User size={12} />
-                  <span>Lead: <strong>{focusedProject.lead}</strong></span>
-                </div>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl font-heading font-extrabold text-foreground tracking-tight">
+        {/* Focused Project Heading */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="font-heading font-extrabold text-[24px] tracking-[-0.6px] text-foreground leading-tight">
                 {focusedProject.name}
               </h1>
-
-              <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed max-w-4xl">
-                {focusedProject.description}
-              </p>
-
-              {/* Teammates Roster */}
-              <div className="flex items-center gap-2 pt-1">
-                <span className="text-[11px] font-bold text-muted-foreground">Team Roster:</span>
-                <div className="flex items-center -space-x-1.5">
-                  {joinedMembers.map((member) => (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      key={member?.id}
-                      src={member?.avatar}
-                      alt={member?.name}
-                      title={`${member?.name} (${member?.role})`}
-                      className="w-7 h-7 rounded-full object-cover border-2 border-card ring-1 ring-border"
-                    />
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setInviteModalProject(focusedProject)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border ml-1"
-                >
-                  <UserPlus size={12} className="text-primary" />
-                  <span>+ Invite Teammates</span>
-                </button>
-              </div>
+              <span className={`pill ${focusedProject.status === "paused" ? "pill-amber" : "pill-green"}`}>
+                {focusedProject.status === "paused" ? "ON HOLD" : "ACTIVE"}
+              </span>
             </div>
+            <p className="text-[12px] text-muted-foreground mt-1 max-w-4xl">
+              {focusedProject.description}
+            </p>
+          </div>
+        </div>
 
-            {/* Right: Progress KPIs */}
-            <div className="flex sm:flex-col items-center justify-center p-4 rounded-2xl bg-muted/40 border border-border shrink-0 min-w-[140px] text-center gap-2">
-              <div className="text-2xl font-heading font-extrabold text-foreground">
-                {projProgress}%
-              </div>
-              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+        {/* 4-Column Workspace Overview Panel (Figma Design) */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 p-[17px_20px] rounded-[14px] bg-card border border-border gap-4 shadow-2xs">
+          <div className="flex flex-col gap-2 md:border-r border-border md:pr-4">
+            <span className="text-[9px] font-extrabold tracking-[0.8px] text-[#929bab] uppercase">PROJECT LEAD</span>
+            <div className="flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/founder.jpg" alt={focusedProject.lead} className="w-[26px] h-[26px] rounded-full object-cover border border-border" />
+              <b className="font-heading font-bold text-[12px] text-foreground">{focusedProject.lead}</b>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 md:border-r border-border md:pr-4">
+            <span className="text-[9px] font-extrabold tracking-[0.8px] text-[#929bab] uppercase">DUE DATE</span>
+            <b className="font-heading font-bold text-[12px] text-foreground flex items-center gap-1.5 mt-0.5">
+              <Calendar size={14} className="text-muted-foreground" />
+              <span>Nov 18, 2026</span>
+            </b>
+          </div>
+
+          <div className="flex flex-col gap-2 md:border-r border-border md:pr-4">
+            <span className="text-[9px] font-extrabold tracking-[0.8px] text-[#929bab] uppercase">PROGRESS</span>
+            <div className="flex flex-col gap-1.5">
+              <b className="font-heading font-bold text-[12px] text-foreground">{projProgress}%</b>
+              <div className="h-[5px] rounded-full bg-[#edf0f6] dark:bg-muted overflow-hidden">
                 <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${projProgress}%`,
-                    backgroundColor: focusedProject.color || "#4f6ef7",
-                  }}
+                  className="h-full rounded-full transition-all duration-300"
+                  style={{ width: `${projProgress}%`, backgroundColor: focusedProject.color || "#5268ff" }}
                 />
               </div>
-              <span className="text-[11px] text-muted-foreground font-medium">
-                {completedProjTasks} of {totalProjTasks} tasks done
-              </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[9px] font-extrabold tracking-[0.8px] text-[#929bab] uppercase">TEAM</span>
+            <div className="flex items-center -space-x-1.5">
+              {joinedMembers.length === 0 ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src="/founder.jpg" className="w-[26px] h-[26px] rounded-full object-cover border-2 border-card" alt="Lead" />
+              ) : (
+                joinedMembers.map((m) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={m?.id} src={m?.avatar || "/founder.jpg"} className="w-[26px] h-[26px] rounded-full object-cover border-2 border-card" alt={m?.name} />
+                ))
+              )}
+              <button
+                onClick={() => setInviteModalProject(focusedProject)}
+                className="text-[10px] font-bold text-primary ml-3 hover:underline cursor-pointer"
+              >
+                + Invite
+              </button>
             </div>
           </div>
         </div>
@@ -1041,135 +1012,121 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
   // =========================================================================
   return (
     <div className="flex flex-col gap-5 animate-fadeIn pb-16">
-      {/* Top Header & High-Density Metrics Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
+      {/* Top Header & High-Density Metrics Bar matching Figma */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-heading font-extrabold text-foreground tracking-tight">
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading font-extrabold text-[25px] tracking-[-0.8px] text-foreground leading-tight">
               Ongoing Projects
             </h1>
-            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-primary/10 text-primary border border-primary/20">
-              INITIATIVES HUB
-            </span>
+            <span className="eyebrow-tag">INITIATIVES HUB</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Dedicated multi-view workspaces with drag-and-drop priority sequencing.
+          <p className="text-[12px] text-muted-foreground mt-1">
+            Dedicated multi-view workspaces with clear ownership and progress.
           </p>
         </div>
 
-        {/* Live Metrics Tiles & New Project Action */}
-        <div className="flex items-center flex-wrap gap-2.5">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-card border border-border shadow-2xs text-xs font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
-              <span className="text-muted-foreground">Active:</span>
-              <strong className="text-foreground">{activeProjectsCount}</strong>
-            </div>
-            <div className="h-3.5 w-px bg-border" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Pending:</span>
-              <strong className="text-primary">{pendingTasksCount}</strong>
-            </div>
-            <div className="h-3.5 w-px bg-border" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground">Progress:</span>
-              <strong className="text-emerald-500">{globalProgress}%</strong>
-            </div>
+        {/* Live Metrics Health Pill & New Project Action */}
+        <div className="flex items-center flex-wrap gap-3">
+          <div className="h-[38px] px-3.5 rounded-[10px] border border-border bg-card flex items-center gap-2 text-[11px] text-muted-foreground shadow-2xs">
+            <span className="w-[7px] h-[7px] rounded-full bg-[#10bc89]" />
+            <span>
+              Active: <b className="text-foreground">{activeProjectsCount}</b>
+            </span>
+            <span className="h-[13px] border-l border-border" />
+            <span>
+              Progress: <b className="text-[#10a67a]">{globalProgress}%</b>
+            </span>
           </div>
 
           <button
             onClick={onOpenNewProjectModal}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-primary/90 shadow-2xs transition-all active:scale-98"
+            className="h-[38px] px-4 rounded-[10px] bg-primary hover:bg-[#3d50df] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-[0_5px_13px_rgba(82,104,246,0.25)] transition-all cursor-pointer"
           >
-            <Plus size={14} />
-            <span>New Project</span>
+            <Plus size={15} />
+            <span>New project</span>
           </button>
         </div>
       </div>
 
-      {/* Filter and Category Ribbon */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border shadow-2xs">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Status Tabs */}
-          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/40">
-            <button
-              onClick={() => setProjectStatusFilter("all")}
-              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                projectStatusFilter === "all"
-                  ? "bg-card text-foreground shadow-2xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setProjectStatusFilter("active")}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                projectStatusFilter === "active"
-                  ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-2xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <span>⚡ Active</span>
-            </button>
-            <button
-              onClick={() => setProjectStatusFilter("paused")}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                projectStatusFilter === "paused"
-                  ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 shadow-2xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <span>⏸ On Hold</span>
-              {holdProjectsCount > 0 && (
-                <span className="px-1 py-0.2 rounded font-mono text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400">
-                  {holdProjectsCount}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                setProjectStatusFilter("completed");
-                setShowClosedProjects(true);
-              }}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
-                projectStatusFilter === "completed"
-                  ? "bg-card text-foreground shadow-2xs font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <span>📦 Archived</span>
-            </button>
-          </div>
+      {/* Filter and Category Ribbon matching Figma */}
+      <div className="min-h-[54px] bg-card border border-border rounded-[13px] p-[7px_12px] flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl">
+          <button
+            onClick={() => setProjectStatusFilter("all")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              projectStatusFilter === "all"
+                ? "bg-card text-primary shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setProjectStatusFilter("active")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              projectStatusFilter === "active"
+                ? "bg-card text-emerald-600 dark:text-emerald-400 shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setProjectStatusFilter("paused")}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              projectStatusFilter === "paused"
+                ? "bg-card text-amber-600 dark:text-amber-400 shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <span>On hold</span>
+            {holdProjectsCount > 0 && (
+              <span className="ml-1.5 px-1 py-0.2 rounded font-mono text-[9px] bg-amber-500/20 text-amber-600 dark:text-amber-400">
+                {holdProjectsCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => {
+              setProjectStatusFilter("completed");
+              setShowClosedProjects(true);
+            }}
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+              projectStatusFilter === "completed"
+                ? "bg-card text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Archived
+          </button>
+        </div>
 
-          <div className="h-4 w-px bg-border mx-1 hidden sm:block" />
-
-          {/* Category Chips */}
-          <div className="flex items-center gap-1 overflow-x-auto py-0.5">
+        {/* Category Chips */}
+        <div className="flex items-center gap-1.5 overflow-x-auto py-0.5">
+          <button
+            onClick={() => setCategoryFilter("all")}
+            className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all shrink-0 cursor-pointer ${
+              categoryFilter === "all"
+                ? "bg-primary/10 text-primary border border-primary/25"
+                : "bg-muted/40 text-muted-foreground hover:text-foreground border border-transparent"
+            }`}
+          >
+            All Categories
+          </button>
+          {allCategories.map((cat) => (
             <button
-              onClick={() => setCategoryFilter("all")}
-              className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
-                categoryFilter === "all"
-                  ? "bg-primary/10 text-primary border border-primary/25 font-semibold"
+              key={cat}
+              onClick={() => setCategoryFilter(cat)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all shrink-0 cursor-pointer ${
+                categoryFilter === cat
+                  ? "bg-primary/10 text-primary border border-primary/25"
                   : "bg-muted/40 text-muted-foreground hover:text-foreground border border-transparent"
               }`}
             >
-              All Categories
+              {cat}
             </button>
-            {allCategories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setCategoryFilter(cat)}
-                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-all shrink-0 ${
-                  categoryFilter === cat
-                    ? "bg-primary/10 text-primary border border-primary/25 font-semibold"
-                    : "bg-muted/40 text-muted-foreground hover:text-foreground border border-transparent"
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+          ))}
         </div>
       </div>
 
@@ -1305,46 +1262,36 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   <div className="flex-1 min-w-0 space-y-1.5">
                     {/* Category, Status & Lead badges */}
                     <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className="w-2.5 h-2.5 rounded-full shrink-0 shadow-2xs"
-                        style={{ backgroundColor: proj.color || "#4f6ef7" }}
-                      />
-
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border/60">
-                        {proj.category}
-                      </span>
+                      <span className="pill">{proj.category}</span>
 
                       {proj.status === "paused" ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                          <Pause size={10} className="fill-current" />
+                        <span className="pill pill-amber">
+                          <Pause size={9} className="fill-current mr-1" />
                           <span>On Hold</span>
                         </span>
                       ) : isCompleted ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-muted text-muted-foreground border border-border">
-                          <span>Closed</span>
-                        </span>
+                        <span className="pill">Closed</span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="pill pill-green">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#10bc89] mr-1 inline-block" />
                           <span>Active</span>
                         </span>
                       )}
 
                       {/* Lead Info */}
-                      <div className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
-                        <User size={11} className="text-muted-foreground/70" />
-                        <span>Lead: <strong className="text-foreground font-semibold">{proj.lead}</strong></span>
-                      </div>
+                      <span className="text-[10px] text-muted-foreground ml-1">
+                        Lead: <strong className="text-foreground font-semibold">{proj.lead}</strong>
+                      </span>
                     </div>
 
                     {/* Title & Description */}
                     <div>
-                      <h3 className="text-sm sm:text-base font-heading font-semibold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
+                      <h3 className="text-sm sm:text-base font-heading font-bold text-foreground group-hover:text-primary transition-colors flex items-center gap-1.5">
                         <span>{proj.name}</span>
                         <ChevronRight size={15} className="text-muted-foreground/40 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" />
                       </h3>
                       {proj.description && (
-                        <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5 font-normal leading-normal">
+                        <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5 font-normal leading-normal">
                           {proj.description}
                         </p>
                       )}
@@ -1358,7 +1305,8 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   <div className="flex items-center gap-2">
                     <div className="flex items-center -space-x-1.5">
                       {joinedMembers.length === 0 ? (
-                        <span className="text-[10px] text-muted-foreground italic">No extra members</span>
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src="/founder.jpg" className="w-[24px] h-[24px] rounded-full object-cover border-2 border-card shadow-2xs" alt="Pushkar" />
                       ) : (
                         joinedMembers.slice(0, 3).map((m) => (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -1367,12 +1315,12 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                             src={m?.avatar || "/founder.jpg"}
                             alt={m?.name}
                             title={`${m?.name} (${m?.role})`}
-                            className="w-6 h-6 rounded-full object-cover border-2 border-card ring-1 ring-border shadow-2xs"
+                            className="w-[24px] h-[24px] rounded-full object-cover border-2 border-card shadow-2xs"
                           />
                         ))
                       )}
                       {joinedMembers.length > 3 && (
-                        <span className="w-6 h-6 rounded-full bg-muted text-[10px] font-mono font-semibold text-muted-foreground flex items-center justify-center border-2 border-card">
+                        <span className="w-[24px] h-[24px] rounded-full bg-muted text-[10px] font-mono font-semibold text-muted-foreground flex items-center justify-center border-2 border-card">
                           +{joinedMembers.length - 3}
                         </span>
                       )}
@@ -1384,7 +1332,7 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                         e.stopPropagation();
                         setInviteModalProject(proj);
                       }}
-                      className="text-[11px] font-semibold text-muted-foreground hover:text-primary transition-colors"
+                      className="text-[11px] font-bold text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                       title="Invite collaborators"
                     >
                       + Invite
@@ -1392,19 +1340,19 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                   </div>
 
                   {/* Compact Progress Bar */}
-                  <div className="min-w-[130px] space-y-1">
-                    <div className="flex items-center justify-between text-[11px] font-mono">
+                  <div className="min-w-[125px] space-y-1">
+                    <div className="flex items-center justify-between text-[10px] font-mono">
                       <span className="text-muted-foreground">
                         {completedCount}/{totalCount} tasks
                       </span>
-                      <span className="font-semibold text-foreground">{progress}%</span>
+                      <b className="font-bold text-foreground">{progress}%</b>
                     </div>
-                    <div className="w-full bg-muted/80 rounded-full h-1.5 overflow-hidden">
+                    <div className="w-full bg-[#edf0f6] dark:bg-muted rounded-full h-[5px] overflow-hidden">
                       <div
                         className="h-full rounded-full transition-all duration-300"
                         style={{
                           width: `${progress}%`,
-                          backgroundColor: proj.color || "#4f6ef7",
+                          backgroundColor: proj.color || "#5268ff",
                         }}
                       />
                     </div>
@@ -1418,10 +1366,10 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
                         e.stopPropagation();
                         setSelectedProjectId(proj.id);
                       }}
-                      className="px-3.5 py-1.5 rounded-xl text-xs font-semibold text-primary bg-primary/10 hover:bg-primary hover:text-white border border-primary/20 transition-all flex items-center gap-1.5 shadow-2xs"
+                      className="h-[36px] px-3.5 rounded-[9px] border border-border bg-card hover:bg-muted text-[11px] font-bold text-foreground flex items-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                     >
                       <span>Workspace</span>
-                      <ArrowRight size={13} />
+                      <ArrowRight size={13} className="text-primary" />
                     </button>
 
                     <button

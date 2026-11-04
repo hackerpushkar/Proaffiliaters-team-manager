@@ -41,7 +41,7 @@ const config: Config = {
       },
       fontFamily: {
         sans: ["var(--font-dm-sans)", "'DM Sans'", "sans-serif"],
-        heading: ["var(--font-plus-jakarta)", "'Plus Jakarta Sans'", "sans-serif"],
+        heading: ["var(--font-manrope)", "'Manrope'", "sans-serif"],
         mono: ["var(--font-jetbrains-mono)", "'JetBrains Mono'", "monospace"],
       },
     },

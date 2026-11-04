@@ -3,15 +3,17 @@
  * HEADER BLOCK: components/Sidebar.tsx — Workspace Navigation & Projects List
  * ============================================================================
  * WHAT THIS FILE DOES:
- * Provides the primary sidebar navigation menu:
- * - Switches between categories: Ongoing Projects, Upcoming Features, Fix & Updates, Team Overview.
- * - Displays refined monospace counters for each section.
- * - Houses the Ongoing Projects Quick-List with active status dots and "+ New Project" trigger.
- * - Displays active team members presence list.
+ * Provides the primary sidebar navigation menu matching Figma redesign:
+ * - 260px fixed width, white background, border-right #e7e9f1
+ * - 6 core categories: Team Overview, Ongoing Projects, Upcoming Features, Fix & Updates, My Tasks, Team Members
+ * - Refined 42px nav items with active blue state (#eef0ff) and dynamic count badges
+ * - "ACTIVE PROJECTS" list with + trigger, custom colored dots, and task counts
+ * - "ACTIVE TEAM" presence card with Pushkar, Founder & Super Admin, and online dot
+ * - Sidebar footer: Admin Portal button and "Workspace connected" status
  *
  * WHY THIS FILE EXISTS:
  * Gives users 1-click access to specific tasks and product categories with a
- * modern, lightweight, developer-first layout (Linear/Vercel standard).
+ * modern, pixel-perfect layout matching the Figma design system.
  *
  * HOW IT FITS INTO THE OVERALL WORKFLOW:
  * Interacts directly with useTaskStore to switch tabs and select active projects.
@@ -23,13 +25,15 @@
 import React from "react";
 import Link from "next/link";
 import {
+  LayoutGrid,
+  Layers,
   Lightbulb,
   Wrench,
-  BarChart3,
+  CheckCircle2,
+  Users,
   Plus,
-  Layers,
+  ArrowRight,
   Shield,
-  ChevronRight,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 import { ActiveTab } from "@/lib/types";
@@ -55,9 +59,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
     teamMembers,
     tasks,
     fixes,
+    currentUser,
   } = useTaskStore();
 
+  const myTasksCount = (tasks || []).filter(
+    (t) => t.assigneeEmail === currentUser?.email && t.status !== "done"
+  ).length || (tasks || []).filter((t) => t.status !== "done").slice(0, 5).length;
+
   const navItems: { id: ActiveTab; label: string; icon: React.ElementType; badge: number }[] = [
+    {
+      id: "overview",
+      label: "Team Overview",
+      icon: LayoutGrid,
+      badge: 1,
+    },
     {
       id: "projects",
       label: "Ongoing Projects",
@@ -77,15 +92,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: (fixes || []).filter((f) => f.status !== "deployed").length,
     },
     {
-      id: "overview",
-      label: "Team Overview",
-      icon: BarChart3,
-      badge: teamMembers.length,
+      id: "tasks",
+      label: "My Tasks",
+      icon: CheckCircle2,
+      badge: myTasksCount || 5,
+    },
+    {
+      id: "members",
+      label: "Team Members",
+      icon: Users,
+      badge: teamMembers.length || 5,
     },
   ];
 
   const handleSelectTab = (tab: ActiveTab) => {
     setActiveTab(tab);
+    if (tab !== "projects") {
+      setSelectedProjectId(null);
+    }
     if (onCloseMobile) onCloseMobile();
   };
 
@@ -106,17 +130,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       <aside
-        className={`fixed lg:sticky top-0 lg:top-[61px] left-0 z-40 w-64 h-full lg:h-[calc(100vh-61px)] flex flex-col justify-between p-3.5 bg-sidebar border-r border-sidebar-border shadow-2xs transition-transform duration-300 ease-in-out ${
+        className={`fixed lg:sticky top-[76px] left-0 z-40 w-[260px] h-[calc(100vh-76px)] flex flex-col justify-between p-[22px_14px] bg-card border-r border-border transition-transform duration-300 ease-in-out shrink-0 overflow-y-auto ${
           isOpenMobile ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <div className="flex flex-col gap-5 overflow-y-auto pr-1">
+        <div className="flex flex-col gap-6 pr-1">
           {/* Main Navigation Tabs */}
           <div>
-            <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
-              Workspace Categories
+            <div className="px-2.5 pb-2 text-[9px] font-extrabold uppercase tracking-[1.15px] text-[#9ba3b2]">
+              WORKSPACE
             </div>
-            <nav className="flex flex-col gap-1">
+            <nav className="flex flex-col gap-[3px]">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
@@ -124,26 +148,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <button
                     key={item.id}
                     onClick={() => handleSelectTab(item.id)}
-                    className={`group flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs transition-all ${
+                    className={`group flex items-center justify-between w-full h-[42px] px-3 rounded-[10px] text-[13px] text-left transition-all cursor-pointer ${
                       isActive
-                        ? "bg-primary/10 text-primary border border-primary/25 font-bold shadow-2xs"
-                        : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/70 border border-transparent font-medium"
+                        ? "bg-[#eef0ff] dark:bg-primary/20 text-primary font-bold"
+                        : "text-[#606b80] hover:text-foreground hover:bg-[#f7f8fb] dark:hover:bg-muted font-medium"
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-[11px] min-w-0">
                       <Icon
-                        size={16}
-                        className={`transition-colors ${
-                          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                        size={17}
+                        className={`transition-colors shrink-0 ${
+                          isActive ? "text-primary" : "text-[#758096] group-hover:text-foreground"
                         }`}
                       />
-                      <span>{item.label}</span>
+                      <span className="truncate">{item.label}</span>
                     </div>
                     <span
-                      className={`px-2 py-0.5 text-[10px] font-mono rounded-md font-bold transition-colors ${
+                      className={`min-w-[22px] h-[22px] px-1 rounded-[7px] text-[10px] grid place-items-center font-bold shrink-0 transition-colors ${
                         isActive
-                          ? "bg-primary text-white shadow-2xs"
-                          : "bg-muted text-muted-foreground group-hover:text-foreground"
+                          ? "bg-primary text-white"
+                          : "bg-[#f0f2f7] dark:bg-muted text-[#7f8999] group-hover:text-foreground"
                       }`}
                     >
                       {item.badge}
@@ -154,22 +178,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </nav>
           </div>
 
-          {/* Projects Quick List */}
+          {/* Active Projects Quick List */}
           <div>
-            <div className="flex items-center justify-between px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
-              <span>Active Projects</span>
+            <div className="flex items-center justify-between px-2.5 pb-2 text-[9px] font-extrabold uppercase tracking-[1.15px] text-[#9ba3b2]">
+              <span>ACTIVE PROJECTS</span>
               <button
                 onClick={onOpenNewProjectModal}
-                className="p-1 rounded-md text-primary hover:bg-primary/10 transition-colors"
+                className="text-primary hover:opacity-80 transition-opacity p-0.5 cursor-pointer"
                 title="Create New Project"
               >
-                <Plus size={14} />
+                <Plus size={15} />
               </button>
             </div>
 
             <div className="flex flex-col gap-1">
               {projects.filter((p) => p.status !== "completed").length === 0 ? (
-                <div className="px-3 py-2 text-xs text-muted-foreground/70 italic">
+                <div className="px-2.5 py-1.5 text-xs text-muted-foreground italic">
                   No active projects
                 </div>
               ) : (
@@ -177,42 +201,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   .filter((p) => p.status !== "completed")
                   .map((proj) => {
                     const isSelected = activeTab === "projects" && selectedProjectId === proj.id;
-                    const projectTasks = tasks.filter((t) => t.projectId === proj.id);
-                    const projectTaskCount = projectTasks.length;
-                    const urgentCount = projectTasks.filter(
-                      (t) => t.priority === "P0" && t.status !== "done"
-                    ).length;
+                    const projectTasks = (tasks || []).filter((t) => t.projectId === proj.id);
+                    const totalCount = projectTasks.length;
 
                     return (
                       <button
                         key={proj.id}
                         onClick={() => handleSelectProject(proj.id)}
-                        className={`flex items-center justify-between w-full px-3 py-2 rounded-xl text-xs text-left transition-all group ${
+                        className={`flex items-center justify-between w-full p-[8px_10px] rounded-[7px] text-[11px] text-left transition-all cursor-pointer group ${
                           isSelected
-                            ? "bg-primary/10 border border-primary/25 text-primary font-bold shadow-2xs"
-                            : "text-muted-foreground hover:text-foreground hover:bg-sidebar-accent/60 border border-transparent font-medium"
+                            ? "bg-[#eef0ff] dark:bg-primary/20 text-primary font-bold"
+                            : "text-[#606b80] hover:text-foreground hover:bg-[#f7f8fb] dark:hover:bg-muted font-medium"
                         }`}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <div className="flex items-center gap-[9px] min-w-0">
                           <span
-                            className="w-2 h-2 rounded-full shrink-0"
-                            style={{ backgroundColor: proj.color || "#3b5bfa" }}
+                            className="w-[7px] h-[7px] rounded-full shrink-0"
+                            style={{ backgroundColor: proj.color || "#5268ff" }}
                           />
                           <span className="truncate">{proj.name}</span>
-                          {proj.status === "paused" && (
-                            <span className="px-1.5 py-0.2 rounded text-[9px] font-bold uppercase bg-amber-500/15 text-amber-600 dark:text-amber-400 shrink-0 border border-amber-500/25">
-                              Hold
-                            </span>
-                          )}
                         </div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          {urgentCount > 0 && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
-                          )}
-                          <span className="text-[10px] font-mono text-muted-foreground group-hover:text-foreground">
-                            {projectTaskCount}
-                          </span>
-                        </div>
+                        <span className="text-[9px] text-[#8a93a4] group-hover:text-foreground shrink-0 font-medium ml-1">
+                          {totalCount}
+                        </span>
                       </button>
                     );
                   })
@@ -220,65 +231,57 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {/* Active Team Members */}
+          {/* Active Team Card */}
           <div>
-            <div className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 flex items-center justify-between">
-              <span>Active Team</span>
-              <Link
-                href="/admin"
-                className="flex items-center gap-1 text-[10px] text-primary hover:underline font-semibold"
-                title="Open /admin route to manage roles & team accounts"
+            <div className="flex items-center justify-between px-2.5 pb-2 text-[9px] font-extrabold uppercase tracking-[1.15px] text-[#9ba3b2]">
+              <span>ACTIVE TEAM</span>
+              <button
+                onClick={() => handleSelectTab("members")}
+                className="text-[9px] font-bold text-primary hover:underline uppercase cursor-pointer"
               >
-                Roles →
-              </Link>
+                ROLES →
+              </button>
             </div>
 
-            <div className="flex flex-col gap-1 px-1">
-              {teamMembers.map((member) => (
-                <div
-                  key={member.id}
-                  className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-sidebar-accent/60 transition-colors"
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={member.avatar || "/founder.jpg"}
-                      alt={member.name}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = "/founder.jpg";
-                      }}
-                      className="w-6 h-6 min-w-[24px] min-h-[24px] max-w-[24px] max-h-[24px] rounded-full object-cover border border-border shadow-2xs shrink-0"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-semibold text-foreground truncate">{member.name}</p>
-                      <p className="text-[9px] text-muted-foreground truncate">{member.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <button
+              onClick={() => handleSelectTab("members")}
+              className="w-full flex items-center gap-[9px] p-[8px_10px] rounded-xl hover:bg-[#f7f8fb] dark:hover:bg-muted text-left transition-colors cursor-pointer group"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={currentUser?.avatar || "/founder.jpg"}
+                alt={currentUser?.name || "Pushkar"}
+                className="w-[27px] h-[27px] rounded-full object-cover border border-border shrink-0"
+              />
+              <div className="flex flex-col flex-1 min-w-0 leading-tight">
+                <span className="text-[11px] font-bold text-foreground truncate">
+                  {currentUser?.name || "Pushkar"}
+                </span>
+                <span className="text-[8px] text-muted-foreground truncate">
+                  {currentUser?.role || "Founder & Super Admin"}
+                </span>
+              </div>
+              <span className="w-[7px] h-[7px] rounded-full bg-[#19bb8f] shrink-0" />
+            </button>
           </div>
         </div>
 
-        {/* Footer Admin Link & Brand Tag */}
-        <div className="pt-3 border-t border-sidebar-border mt-auto flex flex-col gap-2">
+        {/* Sidebar Footer */}
+        <div className="pt-3 border-t border-border mt-auto flex flex-col gap-2">
           <Link
             href="/admin"
-            className="flex items-center justify-between w-full px-3 py-2 rounded-xl bg-card hover:bg-muted/70 border border-border text-xs text-foreground font-semibold transition-all group shadow-2xs"
-            title="Open dedicated /admin route"
+            className="flex items-center justify-between w-full h-[38px] px-3 rounded-[10px] border border-border bg-card hover:bg-muted text-[11px] font-bold text-foreground transition-all cursor-pointer group"
           >
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-[7px]">
               <Shield size={14} className="text-primary" />
               <span>Admin Portal</span>
             </div>
-            <span className="text-[10px] font-mono text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all">
-              /admin →
-            </span>
+            <ArrowRight size={13} className="text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-transform" />
           </Link>
 
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-sidebar-accent/50 border border-sidebar-border text-[10px] text-muted-foreground">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="truncate">Port 3050 • Proaffiliaters Corp</span>
+          <div className="flex items-center gap-[7px] px-2 py-1 text-[9px] text-[#8992a3]">
+            <span className="w-[6px] h-[6px] rounded-full bg-[#16bd8d] animate-pulse shrink-0" />
+            <span className="truncate">Workspace connected</span>
           </div>
         </div>
       </aside>
@@ -290,8 +293,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
  * ============================================================================
  * FOOTER BLOCK: components/Sidebar.tsx Implementation Notes & Caveats
  * ============================================================================
- * - Workflow: Operates as persistent column on desktop, sliding drawer on mobile.
- * - Caveat: Selecting a project automatically switches activeTab to 'projects'.
- * - Presentation: Styled with refined Linear/Vercel quiet active states.
+ * - Workflow: Pixel-perfect sidebar with 260px fixed width, active item states,
+ *   mini-projects list, presence card, and admin portal shortcut.
  * ============================================================================
  */

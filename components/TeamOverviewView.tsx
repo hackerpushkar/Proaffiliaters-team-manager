@@ -3,12 +3,11 @@
  * HEADER BLOCK: components/TeamOverviewView.tsx — Executive Dashboard
  * ============================================================================
  * WHAT THIS FILE DOES:
- * Summarizes the entire Proaffiliaters engineering & product landscape:
- * - High-level KPI metric cards.
- * - Project workload distribution.
- * - Task priority breakdown (P0 Urgent down to P3 Low).
- * - Upcoming feature roadmap pulse.
- * - Active team assignees and responsibilities.
+ * Summarizes the entire Proaffiliaters engineering & product landscape matching Figma:
+ * - 4 high-level KPI metric cards with custom colored stat icons (blue, red, purple, amber)
+ * - Active projects status grid (2 columns) with progress bars and fractions
+ * - Task priority backlog distribution panel (P0 Urgent down to P3 Low)
+ * - 1-Click "Create task" button and navigation jumps
  *
  * WHY THIS FILE EXISTS:
  * Gives founders and team leads an instant 360-degree view of all active work.
@@ -22,214 +21,222 @@
 
 import React from "react";
 import {
-  FolderKanban,
+  Layers,
   Lightbulb,
   Wrench,
-  CheckCircle2,
-  AlertCircle,
-  TrendingUp,
-  Users,
-  ChevronRight,
-  Shield,
-  Zap,
+  Flag,
+  Plus,
+  ArrowRight,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
+import { ActiveTab } from "@/lib/types";
 
 interface TeamOverviewViewProps {
-  onNavigateToTab: (tab: "features" | "projects" | "fixes") => void;
+  onNavigateToTab: (tab: ActiveTab) => void;
+  onOpenAddTaskModal?: () => void;
 }
 
-export const TeamOverviewView: React.FC<TeamOverviewViewProps> = ({ onNavigateToTab }) => {
-  const { stats, projects, tasks, setSelectedProjectId } = useTaskStore();
+export const TeamOverviewView: React.FC<TeamOverviewViewProps> = ({
+  onNavigateToTab,
+  onOpenAddTaskModal,
+}) => {
+  const { stats, projects, tasks, fixes, features, setSelectedProjectId } = useTaskStore();
 
-  const p0Tasks = tasks.filter((t) => t.priority === "P0" && t.status !== "done");
-  const p1Tasks = tasks.filter((t) => t.priority === "P1" && t.status !== "done");
-  const p2Tasks = tasks.filter((t) => t.priority === "P2" && t.status !== "done");
-  const p3Tasks = tasks.filter((t) => t.priority === "P3" && t.status !== "done");
+  const p0Tasks = (tasks || []).filter((t) => t.priority === "P0" && t.status !== "done");
+  const p1Tasks = (tasks || []).filter((t) => t.priority === "P1" && t.status !== "done");
+  const p2Tasks = (tasks || []).filter((t) => t.priority === "P2" && t.status !== "done");
+  const p3Tasks = (tasks || []).filter((t) => t.priority === "P3" && t.status !== "done");
+
+  const openFixesCount = (fixes || []).filter(
+    (f) => f.severity === "critical" && f.status !== "deployed"
+  ).length;
 
   const handleOpenProject = (projectId: string) => {
     setSelectedProjectId(projectId);
     onNavigateToTab("projects");
   };
 
+  const statCards = [
+    {
+      label: "Ongoing Projects",
+      value: projects.filter((p) => p.status !== "completed").length,
+      help: "Active engineering pipelines",
+      icon: Layers,
+      tone: "blue",
+      onClick: () => onNavigateToTab("projects"),
+    },
+    {
+      label: "Urgent P0 Tasks",
+      value: p0Tasks.length,
+      help: "Requiring immediate sprint focus",
+      icon: Flag,
+      tone: "red",
+      onClick: () => onNavigateToTab("projects"),
+    },
+    {
+      label: "Upcoming Ideas",
+      value: features.length,
+      help: "In roadmap & community vote",
+      icon: Lightbulb,
+      tone: "purple",
+      onClick: () => onNavigateToTab("features"),
+    },
+    {
+      label: "Critical Fixes",
+      value: openFixesCount,
+      help: "Open bug triage tickets",
+      icon: Wrench,
+      tone: "amber",
+      onClick: () => onNavigateToTab("fixes"),
+    },
+  ];
+
   return (
-    <div className="flex flex-col gap-6">
-      {/* Metric Cards Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Card 1: Projects */}
-        <div
-          onClick={() => onNavigateToTab("projects")}
-          className="p-5 rounded-2xl bg-card border border-border shadow-xs hover:shadow-md cursor-pointer hover:border-primary/50 transition-all flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground">Ongoing Projects</span>
-            <span className="p-2.5 rounded-xl bg-indigo-500/10 text-primary border border-indigo-500/20">
-              <FolderKanban size={18} />
-            </span>
+    <div className="flex flex-col gap-6 max-w-[1600px]">
+      {/* Figma Section Title */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2">
+        <div>
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading font-extrabold text-[25px] tracking-[-0.8px] text-foreground leading-tight">
+              Team Overview
+            </h1>
+            <span className="eyebrow-tag">COMMAND CENTER</span>
           </div>
-          <div className="mt-4">
-            <div className="text-3xl font-heading font-extrabold text-foreground">
-              {stats.totalProjects}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Active engineering pipelines
-            </p>
-          </div>
+          <p className="text-[12px] text-muted-foreground mt-1">
+            A real-time pulse of projects, priorities, and team momentum.
+          </p>
         </div>
 
-        {/* Card 2: Urgent P0 Tasks */}
-        <div
-          onClick={() => onNavigateToTab("projects")}
-          className="p-5 rounded-2xl bg-card border border-border shadow-xs hover:shadow-md cursor-pointer hover:border-red-500/50 transition-all flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground">Urgent P0 Tasks</span>
-            <span className="p-2.5 rounded-xl bg-red-500/10 text-red-500 border border-red-500/20">
-              <AlertCircle size={18} />
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-3xl font-heading font-extrabold text-red-600 dark:text-red-400">
-              {stats.urgentTasksCount}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Requiring immediate sprint focus
-            </p>
-          </div>
-        </div>
-
-        {/* Card 3: Upcoming Features */}
-        <div
-          onClick={() => onNavigateToTab("features")}
-          className="p-5 rounded-2xl bg-card border border-border shadow-xs hover:shadow-md cursor-pointer hover:border-purple-500/50 transition-all flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground">Upcoming Ideas</span>
-            <span className="p-2.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-              <Lightbulb size={18} />
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-3xl font-heading font-extrabold text-purple-600 dark:text-purple-400">
-              {stats.totalFeatures}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              In roadmap & community vote
-            </p>
-          </div>
-        </div>
-
-        {/* Card 4: Critical Fixes */}
-        <div
-          onClick={() => onNavigateToTab("fixes")}
-          className="p-5 rounded-2xl bg-card border border-border shadow-xs hover:shadow-md cursor-pointer hover:border-amber-500/50 transition-all flex flex-col justify-between"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground">Critical Fixes</span>
-            <span className="p-2.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-              <Zap size={18} />
-            </span>
-          </div>
-          <div className="mt-4">
-            <div className="text-3xl font-heading font-extrabold text-amber-600 dark:text-amber-400">
-              {stats.criticalFixesCount}
-            </div>
-            <p className="text-[11px] text-muted-foreground mt-1">
-              Open bug triage tickets
-            </p>
-          </div>
+        <div>
+          <button
+            onClick={onOpenAddTaskModal}
+            className="h-[38px] px-4 rounded-[10px] bg-primary hover:bg-[#3d50df] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-[0_5px_13px_rgba(82,104,246,0.25)] transition-all cursor-pointer"
+          >
+            <Plus size={15} />
+            <span>Create task</span>
+          </button>
         </div>
       </div>
 
-      {/* Projects Grid Overview */}
-      <div className="flex flex-col gap-3">
+      {/* 4 Stat Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <div
+              key={card.label}
+              onClick={card.onClick}
+              className="h-[154px] bg-card border border-border rounded-[15px] p-[22px] flex flex-col justify-between relative cursor-pointer hover:border-primary/50 hover:shadow-sm transition-all group"
+            >
+              <div className="flex flex-col">
+                <span className="text-[11px] font-medium text-[#677389] dark:text-muted-foreground">
+                  {card.label}
+                </span>
+                <strong className="font-heading font-extrabold text-[28px] text-foreground mt-4 leading-none">
+                  {card.value}
+                </strong>
+                <small className="text-[10px] text-[#8a93a3] dark:text-muted-foreground/80 mt-1.5">
+                  {card.help}
+                </small>
+              </div>
+
+              <div className={`stat-icon ${card.tone} absolute right-[18px] top-[18px]`}>
+                <Icon size={18} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Active Projects Status Section */}
+      <div className="flex flex-col gap-3 mt-2">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-heading font-bold text-foreground">
-            Active Projects Status
-          </h3>
+          <h2 className="font-heading font-bold text-[17px] text-foreground">
+            Active projects status
+          </h2>
           <button
             onClick={() => onNavigateToTab("projects")}
-            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1"
+            className="text-[11px] font-semibold text-primary hover:underline flex items-center gap-1 cursor-pointer"
           >
-            <span>View All Projects</span>
-            <ChevronRight size={13} />
+            <span>View all projects</span>
+            <ArrowRight size={13} />
           </button>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {projects.map((proj) => {
-            const projTasks = tasks.filter((t) => t.projectId === proj.id);
-            const doneCount = projTasks.filter((t) => t.status === "done").length;
-            const urgentP0 = projTasks.filter((t) => t.priority === "P0" && t.status !== "done").length;
-            const percent = projTasks.length > 0 ? Math.round((doneCount / projTasks.length) * 100) : 0;
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {projects
+            .filter((p) => p.status !== "completed")
+            .map((p) => {
+              const projTasks = (tasks || []).filter((t) => t.projectId === p.id);
+              const doneCount = projTasks.filter((t) => t.status === "done").length;
+              const totalCount = projTasks.length;
+              const pc = totalCount > 0 ? Math.round((doneCount / totalCount) * 100) : 0;
 
-            return (
-              <div
-                key={proj.id}
-                onClick={() => handleOpenProject(proj.id)}
-                className="p-5 rounded-2xl bg-card border border-border shadow-xs hover:shadow-md cursor-pointer hover:border-primary/50 transition-all"
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
+              return (
+                <div
+                  key={p.id}
+                  onClick={() => handleOpenProject(p.id)}
+                  className="bg-card border border-border rounded-[14px] p-5 text-left cursor-pointer hover:border-[#cdd3ff] dark:hover:border-primary/50 hover:shadow-[0_8px_25px_rgba(47,56,84,0.06)] transition-all group"
+                >
+                  <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.7px] text-[#68748a] dark:text-muted-foreground">
                     <span
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: proj.color || "#3b5bfa" }}
+                      className="w-[7px] h-[7px] rounded-full shrink-0"
+                      style={{ backgroundColor: p.color || "#5268ff" }}
                     />
-                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      {proj.category}
-                    </span>
+                    <span>{p.category}</span>
                   </div>
-                  {urgentP0 > 0 && (
-                    <span className="px-2.5 py-0.5 text-[10px] font-bold rounded-full bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-                      {urgentP0} P0 Urgent
-                    </span>
-                  )}
-                </div>
 
-                <h4 className="text-base font-heading font-bold text-foreground">{proj.name}</h4>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{proj.description}</p>
+                  <h3 className="font-heading font-bold text-[15px] text-foreground mt-2 mb-1 group-hover:text-primary transition-colors">
+                    {p.name}
+                  </h3>
+                  <p className="text-[10px] text-muted-foreground truncate max-w-full">
+                    {p.description}
+                  </p>
 
-                <div className="mt-4 pt-3 border-t border-border flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>
-                      {doneCount} / {projTasks.length} tasks completed
-                    </span>
-                    <span className="font-bold text-primary">{percent}%</span>
-                  </div>
-                  <div className="w-full h-1.5 rounded-full bg-muted overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-primary"
-                      style={{ width: `${percent}%` }}
-                    />
+                  <div className="border-t border-border mt-3.5 pt-2.5 flex flex-col gap-1.5">
+                    <div className="flex items-center justify-between text-[10px] text-[#6e798d] dark:text-muted-foreground">
+                      <span>
+                        {doneCount} / {totalCount} tasks completed
+                      </span>
+                      <b className="text-primary font-bold">{pc}%</b>
+                    </div>
+                    <div className="h-[5px] rounded-full bg-[#edf0f6] dark:bg-muted overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-300"
+                        style={{
+                          width: `${pc}%`,
+                          backgroundColor: p.color || "#5268ff",
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
         </div>
       </div>
 
-      {/* Task Priority Distribution Bar */}
-      <div className="p-5 rounded-2xl bg-card border border-border shadow-xs">
-        <h3 className="text-sm font-heading font-bold text-foreground mb-3">
-          Task Backlog Priority Distribution
+      {/* Task Backlog Priority Distribution Panel */}
+      <div className="bg-card border border-border rounded-[14px] p-[18px]">
+        <h3 className="font-heading font-bold text-[13px] text-foreground mb-3">
+          Task backlog priority distribution
         </h3>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/20">
-            <span className="text-[11px] font-bold text-red-600 dark:text-red-400 uppercase">P0 • Urgent</span>
-            <div className="text-xl font-bold text-foreground mt-1">{p0Tasks.length}</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div className="priority-box p0">
+            <span className="text-[9px] font-bold uppercase tracking-wider">P0 · URGENT</span>
+            <b className="font-heading font-bold text-[19px] leading-none">{p0Tasks.length}</b>
           </div>
-          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
-            <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase">P1 • High</span>
-            <div className="text-xl font-bold text-foreground mt-1">{p1Tasks.length}</div>
+          <div className="priority-box p1">
+            <span className="text-[9px] font-bold uppercase tracking-wider">P1 · HIGH</span>
+            <b className="font-heading font-bold text-[19px] leading-none">{p1Tasks.length}</b>
           </div>
-          <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20">
-            <span className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 uppercase">P2 • Normal</span>
-            <div className="text-xl font-bold text-foreground mt-1">{p2Tasks.length}</div>
+          <div className="priority-box p2">
+            <span className="text-[9px] font-bold uppercase tracking-wider">P2 · NORMAL</span>
+            <b className="font-heading font-bold text-[19px] leading-none">{p2Tasks.length}</b>
           </div>
-          <div className="p-3.5 rounded-xl bg-slate-500/10 border border-slate-500/20">
-            <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">P3 • Low</span>
-            <div className="text-xl font-bold text-foreground mt-1">{p3Tasks.length}</div>
+          <div className="priority-box p3">
+            <span className="text-[9px] font-bold uppercase tracking-wider">P3 · LOW</span>
+            <b className="font-heading font-bold text-[19px] leading-none">{p3Tasks.length}</b>
           </div>
         </div>
       </div>
@@ -241,6 +248,7 @@ export const TeamOverviewView: React.FC<TeamOverviewViewProps> = ({ onNavigateTo
  * ============================================================================
  * FOOTER BLOCK: components/TeamOverviewView.tsx Implementation Notes
  * ============================================================================
- * - Workflow: Computes overall metrics and provides quick navigation to tabs.
+ * - Workflow: Pixel-perfect Figma executive dashboard with 4 KPI cards,
+ *   2-column active projects grid, and priority distribution metrics.
  * ============================================================================
  */

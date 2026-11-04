@@ -16,14 +16,14 @@
  */
 
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Manrope, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { TaskProvider } from "@/lib/store";
 
-const plusJakarta = Plus_Jakarta_Sans({
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-plus-jakarta",
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-manrope",
+  weight: ["500", "600", "700", "800"],
 });
 
 const dmSans = DM_Sans({
@@ -51,12 +51,12 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${plusJakarta.variable} ${dmSans.variable} ${jetbrainsMono.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary`}
+        className={`${manrope.variable} ${dmSans.variable} ${jetbrainsMono.variable} min-h-screen bg-background text-foreground antialiased selection:bg-primary/20 selection:text-primary font-sans`}
       >
         <TaskProvider>{children}</TaskProvider>
       </body>

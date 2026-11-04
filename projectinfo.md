@@ -29,11 +29,18 @@
 3. Log, triage, and resolve **Fix & Updates** with root cause descriptions, affected subsystems, severity levels, and patch changelogs.
 
 ### Visual & Brand Alignment
-The application utilizes the exact same design language as the **Proaffiliaters Web Application**:
-- **Default Light Mode**: Soft periwinkle/lavender canvas (`#eef2ff`), pure white (`#ffffff`) cards with subtle borders (`rgba(59, 91, 250, 0.12)`), rich navy text (`#1a1f5e`), and electric royal blue buttons (`#3b5bfa`).
-- **Dark Mode**: Deep Indigo-Navy (`#0d1033` background, `#111640` cards).
-- **Typography**: `Plus Jakarta Sans` for titles and bold metrics, `DM Sans` for body text, and `JetBrains Mono` for IDs and code tags.
-- **Official Assets**: Uses official Proaffiliaters logos (`/logo.png`, `/logo_icon.png`, `/prowasp_brand_logo.png`, `/profit_bot_logo.png`) directly from `public/`.
+The application utilizes the pixel-perfect design system from the **Figma Redesign** (`https://fish-stack-04160070.figma.site`):
+- **Default Light Mode**: Soft grey-lavender canvas (`#f5f6fa`), pure white (`#ffffff`) cards with crisp borders (`#e7e9f1`), dark ink text (`#161d2d`), and electric brand blue buttons (`#5268f6` with hover `#3d50df`).
+- **Dark Mode**: Deep midnight navy canvas (`#0d1222`), elevated cards (`#131930`), borders (`#242c4b`), and electric blue accents (`#5268f6`).
+- **Typography**: `Manrope` (weights 600, 700, 800) for titles, headings, and bold KPI metrics; `DM Sans` (400, 500, 600, 700) for body and UI elements; `JetBrains Mono` for IDs and code tags.
+- **Brand Mark**: Gradient `145deg, #5268ff, #9b5cf5` with 40×40px rounded box and bold "P" mark.
+- **Uniform Pills**:
+  - Green (`pill-green`): `#e8faf4`, text `#0da77c`
+  - Amber (`pill-amber`): `#fff5df`, text `#d78607`
+  - Red (`pill-red`): `#ffedef`, text `#e7424e`
+  - Purple (`pill-purple`): `#f5eaff`, text `#9650dc`
+  - Blue (`pill-blue`): `#eaedff`, text `#4e61e9`
+- **Official Assets**: Uses official Proaffiliaters logos (`/logo.png`, `/logo_icon.png`, `/founder.jpg`, `/prowasp_brand_logo.png`, `/profit_bot_logo.png`) directly from `public/`.
 
 ---
 
@@ -43,29 +50,35 @@ The application utilizes the exact same design language as the **Proaffiliaters 
 Team And Task Manager/
 ├── .next/                         # Next.js build cache and runtime
 ├── app/
-│   ├── globals.css                # CSS variables, custom scrollbars, glassmorphism
-│   ├── layout.tsx                 # Root layout with fonts, light mode default
-│   └── page.tsx                   # Main dashboard view switching between modules
+│   ├── globals.css                # CSS variables, custom scrollbars, Figma pills, glassmorphism
+│   ├── layout.tsx                 # Root layout with Manrope & DM Sans fonts
+│   └── page.tsx                   # Main dashboard view switching between 6 core categories
 ├── components/
-│   ├── Header.tsx                 # Clean enterprise brand header with search, My Tasks toggle, invitations, and user profile
-│   ├── Sidebar.tsx                # Responsive sidebar with navigation tabs and active counters
-│   ├── OngoingProjectsView.tsx    # Major & Minor Tasks hierarchy (all major tasks stacked with minor tasks)
-│   ├── UpcomingFeaturesView.tsx   # Category 1: Brainstorming & voting upcoming features
-│   ├── FixUpdatesView.tsx         # Category 3: Bug triage, severity tracking & patches
-│   ├── TaskModal.tsx              # Create/Edit Minor Task dialog with priority & subtasks
-│   ├── ProjectModal.tsx           # Create/Edit Major Task dialog
-│   ├── FeatureModal.tsx           # Create/Edit Feature dialog
-│   ├── FixModal.tsx               # Create/Edit Fix & Update dialog
+│   ├── Header.tsx                 # 76px Figma header with search, cross-category matches, Done chip, and invitations
+│   ├── Sidebar.tsx                # 260px Figma sidebar with 6 navigation tabs, active project dots, and admin portal
+│   ├── OngoingProjectsView.tsx    # Initiatives Hub (Tier 1) and Dedicated Project Workspace (Tier 2)
+│   ├── UpcomingFeaturesView.tsx   # Category 1: Brainstorming & voting upcoming features with 4 roadmap stats
+│   ├── FeatureDetailView.tsx      # Full-page feature research workspace
+│   ├── FixUpdatesView.tsx         # Category 3: Bug triage, severity tracking & patch changelogs
+│   ├── MyTasksView.tsx            # Personal task workspace with status checkboxes and due date highlights
+│   ├── TeamMembersView.tsx        # Organization directory with presence indicators and role profiles
+│   ├── TeamOverviewView.tsx       # Executive dashboard with 4 KPI stat cards and priority distribution
+│   ├── TaskSlideOverDrawer.tsx    # Right-side sliding drawer for instant task inspection
+│   ├── TaskModal.tsx              # Create/Edit Minor Task drawer with priority & subtasks
+│   ├── ProjectModal.tsx           # Create/Edit Major Project drawer
+│   ├── FeatureModal.tsx           # Create/Edit Feature drawer
+│   ├── FixModal.tsx               # Create/Edit Fix & Update drawer
+│   ├── InviteTeammateModal.tsx    # Gmail teammate invitation drawer
 │   └── ui/                        # Reusable UI atoms (Badges, Buttons, Inputs)
 ├── lib/
-│   ├── types.ts                   # Master TypeScript interfaces for all data structures
-│   ├── store.tsx                  # React Context store with LocalStorage sync & export/import
+│   ├── types.ts                   # Master TypeScript interfaces (ActiveTab: overview, projects, features, fixes, tasks, members)
+│   ├── store.tsx                  # React Context store with LocalStorage sync & MongoDB API persistence
 │   └── defaultData.ts             # Rich initial data for Proaffiliaters (Prowasp, Profit bot, etc.)
 ├── public/                        # Official Proaffiliaters brand assets and avatars
 ├── AGENTS.md                      # Mandatory AI agent instructions & protocol
 ├── projectinfo.md                 # Master Architecture Guide (this file)
 ├── package.json                   # Dependencies, scripts, unique port 3050 definition
-├── tailwind.config.ts             # Tailwind CSS tokens mirroring Proaffiliaters web app
+├── tailwind.config.ts             # Tailwind CSS tokens mirroring Figma redesign
 └── tsconfig.json                  # TypeScript compiler configuration
 ```
 
@@ -76,11 +89,12 @@ Team And Task Manager/
 ### Color Palette Variables
 | Token | Light Value (Default) | Dark Value | Semantic Purpose |
 |---|---|---|---|
-| `--background` | `#eef2ff` | `#0d1033` | Master canvas background |
-| `--card` | `#ffffff` | `#111640` | Elevated card surfaces |
-| `--foreground` | `#1a1f5e` | `#e8edf8` | Primary text |
-| `--primary` | `#3b5bfa` | `#4f6ef7` | Primary buttons, active tabs, brand glow |
-| `--accent` | `#7c3aed` | `#7c3aed` | Secondary badges, gradient accents, highlights |
+| `--background` | `#f5f6fa` | `#0d1222` | Master canvas background |
+| `--card` | `#ffffff` | `#131930` | Elevated card surfaces |
+| `--foreground` | `#161d2d` | `#f1f4fb` | Primary text |
+| `--primary` | `#5268f6` | `#5268f6` | Primary buttons, active tabs, brand glow |
+| `--accent` | `#9b5cf5` | `#9b5cf5` | Secondary badges, gradient accents, highlights |
+| `--border` | `#e7e9f1` | `#242c4b` | Subtle divider and card outlines |
 ### SSR & Hydration Resilience
 - **Root Element Warning Suppression**: `app/layout.tsx` defines `<html lang="en" suppressHydrationWarning>` to prevent Next.js SSR mismatch warnings when client themes toggle the `dark` class on the `<html>` element.
 - **Client-Mounted Theme Guard**: Components rendering dynamic theme toggle icons (`Sun` vs `Moon`) in `components/Header.tsx` and `app/admin/page.tsx` utilize a client-mounted lifecycle guard (`mounted && isDark`). Initial SSR and client hydration state strictly align to light mode defaults before reading `localStorage` (`proaffiliaters_theme`), eliminating SVG/path React hydration mismatch errors.

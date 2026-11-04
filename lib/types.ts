@@ -160,7 +160,7 @@ export interface ProjectInvitation {
   respondedAt?: string;
 }
 
-export type ActiveTab = "projects" | "features" | "fixes" | "overview";
+export type ActiveTab = "projects" | "features" | "fixes" | "overview" | "tasks" | "members";
 
 /**
  * ============================================================================

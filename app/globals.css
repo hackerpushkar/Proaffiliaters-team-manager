@@ -4,66 +4,66 @@
 
 :root {
   --font-size: 16px;
-  --background: #f4f6fc;
-  --foreground: #0f172a;
+  --background: #f5f6fa;
+  --foreground: #161d2d;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #161d2d;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: #3b5bfa;
+  --popover-foreground: #161d2d;
+  --primary: #5268f6;
   --primary-foreground: #ffffff;
-  --secondary: #eef2ff;
-  --secondary-foreground: #3b5bfa;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #7c3aed;
+  --secondary: #eef0ff;
+  --secondary-foreground: #5268f6;
+  --muted: #f8f9fc;
+  --muted-foreground: #758096;
+  --accent: #9b5cf5;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #f04e59;
   --destructive-foreground: #ffffff;
-  --border: rgba(99, 102, 241, 0.12);
+  --border: #e7e9f1;
   --input: #ffffff;
-  --input-background: #f8fafc;
-  --ring: #3b5bfa;
-  --radius: 0.75rem;
+  --input-background: #f8f9fc;
+  --ring: #5268f6;
+  --radius: 0.875rem;
   --sidebar: #ffffff;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #3b5bfa;
+  --sidebar-foreground: #161d2d;
+  --sidebar-primary: #5268f6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f8faff;
-  --sidebar-accent-foreground: #3b5bfa;
-  --sidebar-border: rgba(99, 102, 241, 0.1);
-  --sidebar-ring: #3b5bfa;
+  --sidebar-accent: #eef0ff;
+  --sidebar-accent-foreground: #5268f6;
+  --sidebar-border: #e7e9f1;
+  --sidebar-ring: #5268f6;
 }
 
 .dark {
-  --background: #0b0f28;
-  --foreground: #f1f5f9;
-  --card: #111738;
-  --card-foreground: #f1f5f9;
-  --popover: #111738;
-  --popover-foreground: #f1f5f9;
-  --primary: #4f6ef7;
+  --background: #0d1222;
+  --foreground: #f1f4fb;
+  --card: #131930;
+  --card-foreground: #f1f4fb;
+  --popover: #131930;
+  --popover-foreground: #f1f4fb;
+  --primary: #5268f6;
   --primary-foreground: #ffffff;
-  --secondary: #1a2350;
-  --secondary-foreground: #a5b4fc;
-  --muted: #161e44;
-  --muted-foreground: #94a3b8;
-  --accent: #8b5cf6;
+  --secondary: #1e2648;
+  --secondary-foreground: #a9b5fd;
+  --muted: #17203b;
+  --muted-foreground: #8d98af;
+  --accent: #9b5cf5;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #f04e59;
   --destructive-foreground: #ffffff;
-  --border: rgba(99, 102, 241, 0.18);
-  --input: rgba(99, 102, 241, 0.12);
-  --input-background: #141b3e;
-  --ring: #4f6ef7;
-  --sidebar: #090d24;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #4f6ef7;
+  --border: #242c4b;
+  --input: rgba(82, 104, 246, 0.14);
+  --input-background: #17203b;
+  --ring: #5268f6;
+  --sidebar: #0f152a;
+  --sidebar-foreground: #f1f4fb;
+  --sidebar-primary: #5268f6;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #151d45;
-  --sidebar-accent-foreground: #a5b4fc;
-  --sidebar-border: rgba(99, 102, 241, 0.14);
-  --sidebar-ring: #4f6ef7;
+  --sidebar-accent: #1e2648;
+  --sidebar-accent-foreground: #a9b5fd;
+  --sidebar-border: #242c4b;
+  --sidebar-ring: #5268f6;
 }
 
 html,
@@ -183,4 +183,133 @@ body {
 
 .animate-slideInRight {
   animation: slideInRight 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ============================================================================
+ * FIGMA REDESIGN DESIGN SYSTEM ATOMS
+ * ============================================================================ */
+.brand-mark {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  font-family: var(--font-manrope), 'Manrope', sans-serif;
+  font-weight: 800;
+  font-size: 20px;
+  color: white;
+  background: linear-gradient(145deg, #5268ff, #9b5cf5);
+  box-shadow: 0 5px 14px rgba(82, 104, 246, 0.25);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #f1f3f7;
+  color: #69758a;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dark .pill {
+  background: #1c2444;
+  color: #a0aec0;
+}
+
+.pill-green {
+  background: #e8faf4;
+  color: #0da77c;
+}
+.dark .pill-green {
+  background: rgba(13, 167, 124, 0.16);
+  color: #34d399;
+}
+
+.pill-amber {
+  background: #fff5df;
+  color: #d78607;
+}
+.dark .pill-amber {
+  background: rgba(215, 134, 7, 0.16);
+  color: #fbbf24;
+}
+
+.pill-red {
+  background: #ffedef;
+  color: #e7424e;
+}
+.dark .pill-red {
+  background: rgba(231, 66, 78, 0.16);
+  color: #f87171;
+}
+
+.pill-purple {
+  background: #f5eaff;
+  color: #9650dc;
+}
+.dark .pill-purple {
+  background: rgba(150, 80, 220, 0.16);
+  color: #c084fc;
+}
+
+.pill-blue {
+  background: #eaedff;
+  color: #4e61e9;
+}
+.dark .pill-blue {
+  background: rgba(78, 97, 233, 0.18);
+  color: #818cf8;
+}
+
+.stat-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  display: grid;
+  place-items: center;
+}
+.stat-icon.blue { background: #eef0ff; color: #5268f6; }
+.stat-icon.red { background: #fff0f1; color: #f04e59; }
+.stat-icon.purple { background: #f7edff; color: #9b51e0; }
+.stat-icon.amber { background: #fff6e7; color: #eb920e; }
+
+.dark .stat-icon.blue { background: rgba(82, 104, 246, 0.18); color: #818cf8; }
+.dark .stat-icon.red { background: rgba(240, 78, 89, 0.18); color: #f87171; }
+.dark .stat-icon.purple { background: rgba(155, 81, 224, 0.18); color: #c084fc; }
+.dark .stat-icon.amber { background: rgba(235, 146, 14, 0.18); color: #fbbf24; }
+
+.priority-box {
+  border-radius: 12px;
+  padding: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.priority-box.p0 { background: #fff0f1; color: #e9424d; }
+.priority-box.p1 { background: #fff7e8; color: #dc8707; }
+.priority-box.p2 { background: #f0efff; color: #584ce1; }
+.priority-box.p3 { background: #f1f2f5; color: #596275; }
+
+.dark .priority-box.p0 { background: rgba(233, 66, 77, 0.16); color: #f87171; }
+.dark .priority-box.p1 { background: rgba(220, 135, 7, 0.16); color: #fbbf24; }
+.dark .priority-box.p2 { background: rgba(88, 76, 225, 0.16); color: #a5b4fc; }
+.dark .priority-box.p3 { background: rgba(89, 98, 117, 0.2); color: #cbd5e1; }
+
+.eyebrow-tag {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #eef0ff;
+  color: #5268f6;
+  font-size: 9px;
+  letter-spacing: 1px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+.dark .eyebrow-tag {
+  background: rgba(82, 104, 246, 0.18);
+  color: #818cf8;
 }

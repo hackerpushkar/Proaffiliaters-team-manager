@@ -30,6 +30,8 @@ import { UpcomingFeaturesView } from "@/components/UpcomingFeaturesView";
 import { OngoingProjectsView } from "@/components/OngoingProjectsView";
 import { FixUpdatesView } from "@/components/FixUpdatesView";
 import { TeamOverviewView } from "@/components/TeamOverviewView";
+import { MyTasksView } from "@/components/MyTasksView";
+import { TeamMembersView } from "@/components/TeamMembersView";
 import { TaskModal } from "@/components/TaskModal";
 import { ProjectModal } from "@/components/ProjectModal";
 import { FeatureModal } from "@/components/FeatureModal";
@@ -178,8 +180,20 @@ export default function HomePage() {
           )}
 
           {activeTab === "overview" && (
-            <TeamOverviewView onNavigateToTab={(tab) => setActiveTab(tab)} />
+            <TeamOverviewView
+              onNavigateToTab={(tab) => setActiveTab(tab)}
+              onOpenAddTaskModal={() => handleOpenAddTask()}
+            />
           )}
+
+          {activeTab === "tasks" && (
+            <MyTasksView
+              onOpenAddTaskModal={() => handleOpenAddTask()}
+              onOpenEditTaskModal={handleOpenEditTask}
+            />
+          )}
+
+          {activeTab === "members" && <TeamMembersView />}
         </main>
       </div>
 

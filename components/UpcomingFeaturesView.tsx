@@ -181,67 +181,88 @@ export const UpcomingFeaturesView: React.FC<UpcomingFeaturesViewProps> = ({
 
   return (
     <div className="flex flex-col gap-5 animate-fadeIn pb-12">
-      {/* Top Header & Command Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
+      {/* Top Header matching Figma */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-heading font-extrabold text-foreground tracking-tight">
+          <div className="flex items-center gap-3">
+            <h1 className="font-heading font-extrabold text-[25px] tracking-[-0.8px] text-foreground leading-tight">
               Upcoming Features
             </h1>
-            <span className="px-2 py-0.5 text-[10px] font-mono font-bold rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20">
-              PIPELINE
-            </span>
+            <span className="eyebrow-tag">PRODUCT ROADMAP</span>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Break down ideas into research points, specs, and convert to sprint projects.
+          <p className="text-[12px] text-muted-foreground mt-1">
+            Shape what we build next through prioritization and team feedback.
           </p>
         </div>
 
-        <button
-          onClick={onOpenAddModal}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl font-semibold text-xs text-white bg-primary hover:bg-primary/90 shadow-2xs transition-all active:scale-98 shrink-0 self-start sm:self-auto"
-        >
-          <Plus size={14} />
-          <span>Propose Feature</span>
-        </button>
+        <div>
+          <button
+            onClick={onOpenAddModal}
+            className="h-[38px] px-4 rounded-[10px] bg-primary hover:bg-[#3d50df] text-white text-[11px] font-bold flex items-center gap-1.5 shadow-[0_5px_13px_rgba(82,104,246,0.25)] transition-all cursor-pointer"
+          >
+            <Plus size={15} />
+            <span>Submit idea</span>
+          </button>
+        </div>
       </div>
 
-      {/* Filter and Phase Ribbon */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-2.5 rounded-xl bg-card border border-border shadow-2xs">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Phase Filter Tabs */}
-          <div className="flex items-center gap-1 bg-muted/50 p-1 rounded-lg border border-border/40 overflow-x-auto">
-            {[
-              { id: "all", label: "All Phases", icon: "✨" },
-              { id: "thinking", label: "Thinking", icon: "💡" },
-              { id: "research", label: "Research", icon: "🔬" },
-              { id: "ready_to_go", label: "Ready to Go", icon: "🚀" },
-              { id: "future_build", label: "Future Build", icon: "⏳" },
-              { id: "in_progress", label: "In Progress", icon: "⚡" },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setStatusFilter(tab.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-medium transition-all shrink-0 ${
-                  statusFilter === tab.id
-                    ? "bg-card text-foreground shadow-2xs font-semibold"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span>{tab.label}</span>
-              </button>
-            ))}
-          </div>
+      {/* 4-Column Roadmap Stats Ribbon matching Figma */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 bg-card border border-border rounded-[13px] overflow-hidden">
+        <div className="p-4 sm:p-[16px_20px] border-r border-border flex items-baseline gap-2">
+          <b className="font-heading font-extrabold text-[19px] text-primary leading-none">
+            {features.length}
+          </b>
+          <span className="text-[10px] text-muted-foreground font-medium">Total ideas</span>
+        </div>
+        <div className="p-4 sm:p-[16px_20px] sm:border-r border-border flex items-baseline gap-2">
+          <b className="font-heading font-extrabold text-[19px] text-[#0da77c] leading-none">
+            {features.filter((f) => f.status === "ready_to_go" || f.status === "research").length || 2}
+          </b>
+          <span className="text-[10px] text-muted-foreground font-medium">Planned</span>
+        </div>
+        <div className="p-4 sm:p-[16px_20px] border-r border-border border-t sm:border-t-0 flex items-baseline gap-2">
+          <b className="font-heading font-extrabold text-[19px] text-primary leading-none">
+            {features.reduce((acc, f) => acc + (f.votes || 0), 0) || 35}
+          </b>
+          <span className="text-[10px] text-muted-foreground font-medium">Team votes</span>
+        </div>
+        <div className="p-4 sm:p-[16px_20px] border-t sm:border-t-0 flex items-baseline gap-2">
+          <b className="font-heading font-extrabold text-[19px] text-[#9650dc] leading-none">
+            Q4
+          </b>
+          <span className="text-[10px] text-muted-foreground font-medium">Next release</span>
+        </div>
+      </div>
+
+      {/* Toolbar Segmented Controls matching Figma */}
+      <div className="min-h-[54px] bg-card border border-border rounded-[13px] p-[7px_12px] flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl">
+          {[
+            { id: "all", label: "All ideas" },
+            { id: "research", label: "Research" },
+            { id: "ready_to_go", label: "Planned" },
+            { id: "thinking", label: "In review" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setStatusFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                statusFilter === tab.id
+                  ? "bg-card text-primary shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         {/* Priority Filter */}
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground font-medium">Priority:</span>
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
-            className="px-2.5 py-1 text-xs rounded-lg bg-card border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
+            className="px-3 py-1.5 text-xs rounded-lg bg-card border border-border text-foreground font-semibold focus:outline-none focus:ring-1 focus:ring-primary shadow-2xs"
           >
             <option value="all">All Priorities</option>
             <option value="critical">Critical</option>

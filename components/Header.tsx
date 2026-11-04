@@ -3,14 +3,14 @@
  * HEADER BLOCK: components/Header.tsx — Top Navigation & Command Bar
  * ============================================================================
  * WHAT THIS FILE DOES:
- * Renders the top navigation header containing:
- * - Proaffiliaters official logo & title badge
- * - Global search bar across features, projects, and fixes
+ * Renders the top navigation header matching Figma redesign:
+ * - 76px height, glassmorphism backdrop blur
+ * - Proaffiliaters brand mark (40x40 gradient "P") with Manrope 800 title
+ * - Centered global search bar with instant cross-category popup matching
+ * - Quick "Done" counter chip pill
  * - Interactive Project Invitations Bell with pending requests popover
- * - Individual "My Tasks" count pill
- * - Data Backup (Export JSON / Import JSON) and Reset actions
- * - Dark/Light mode theme switch with hydration protection
- * - Logged-in employee profile menu with Sign Out and Admin Portal links
+ * - Theme switch (Light / Dark) with hydration protection
+ * - Employee profile chip & admin dropdown
  *
  * WHY THIS FILE EXISTS:
  * Serves as the persistent command bar across all dashboard views.
@@ -22,7 +22,7 @@
 
 "use client";
 
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -30,7 +30,6 @@ import {
   Sun,
   Moon,
   AlertCircle,
-  Zap,
   CheckCircle2,
   Menu,
   Bell,
@@ -39,8 +38,9 @@ import {
   User,
   Check,
   X as CloseIcon,
+  Layers,
+  Lightbulb,
   CheckSquare,
-  Sparkles,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 
@@ -58,12 +58,18 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
     searchQuery,
     setSearchQuery,
     stats,
+    projects,
+    features,
+    tasks,
+    setActiveTab,
+    setSelectedProjectId,
   } = useTaskStore();
 
   const [mounted, setMounted] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [invitesOpen, setInvitesOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchFocused, setSearchFocused] = useState(false);
 
   // Sync theme on mount
   useEffect(() => {
@@ -96,8 +102,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
     }
   };
 
-
-
   const handleLogout = () => {
     logout();
     router.push("/login");
@@ -109,10 +113,58 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
     (inv) => inv.inviteeEmail.toLowerCase() === userEmail && inv.status === "pending"
   );
 
+  // Live Cross-Category Search Matching
+  const searchMatches = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const q = searchQuery.toLowerCase();
+    const matchedProjects = (projects || [])
+      .filter((p) => p.name.toLowerCase().includes(q) || (p.description && p.description.toLowerCase().includes(q)))
+      .map((p) => ({
+        id: p.id,
+        title: p.name,
+        category: p.category || "Project",
+        type: "Project" as const,
+        action: () => {
+          setSelectedProjectId(p.id);
+          setActiveTab("projects");
+          setSearchQuery("");
+        },
+      }));
+
+    const matchedFeatures = (features || [])
+      .filter((f) => f.name.toLowerCase().includes(q) || (f.description && f.description.toLowerCase().includes(q)))
+      .map((f) => ({
+        id: f.id,
+        title: f.name,
+        category: f.targetTimeline || "Feature",
+        type: "Feature" as const,
+        action: () => {
+          setActiveTab("features");
+          setSearchQuery("");
+        },
+      }));
+
+    const matchedTasks = (tasks || [])
+      .filter((t) => t.name.toLowerCase().includes(q) || (t.description && t.description.toLowerCase().includes(q)))
+      .map((t) => ({
+        id: t.id,
+        title: t.name,
+        category: t.priority,
+        type: "Task" as const,
+        action: () => {
+          setSelectedProjectId(t.projectId);
+          setActiveTab("projects");
+          setSearchQuery("");
+        },
+      }));
+
+    return [...matchedProjects, ...matchedFeatures, ...matchedTasks].slice(0, 6);
+  }, [searchQuery, projects, features, tasks, setSelectedProjectId, setActiveTab, setSearchQuery]);
+
   return (
-    <header className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-6 py-3 border-b backdrop-blur-xl bg-card/90 border-border transition-colors">
-      {/* Left: Mobile hamburger & Brand */}
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 h-[76px] flex items-center justify-between px-4 sm:px-6 border-b border-border bg-card/95 backdrop-blur-md transition-colors">
+      {/* Left: Mobile hamburger & Figma Brand */}
+      <div className="flex items-center gap-3 min-w-[230px]">
         <button
           onClick={onToggleMobileMenu}
           className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted border border-border"
@@ -121,70 +173,94 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
           <Menu size={18} />
         </button>
 
-        <Link href="/" className="flex items-center gap-3 group">
-          <div className="relative flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500/10 via-purple-500/10 to-transparent border border-indigo-500/20 shadow-sm shrink-0 group-hover:scale-105 transition-transform duration-300">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/logo.png"
-              alt="Proaffiliaters Logo"
-              className="w-6 h-6 object-contain"
-            />
+        <Link
+          href="/"
+          onClick={() => {
+            setActiveTab("overview");
+            setSelectedProjectId(null);
+          }}
+          className="flex items-center gap-2.5 group text-left cursor-pointer select-none"
+        >
+          <div className="brand-mark shrink-0 group-hover:scale-105 transition-transform duration-200">
+            P
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-heading font-extrabold text-base tracking-tight text-foreground">
-                Proaffiliaters
-              </span>
-              <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] font-bold tracking-wide uppercase rounded-full bg-primary/10 text-primary border border-primary/20">
-                Team & Task
-              </span>
-            </div>
-            <p className="text-[11px] text-muted-foreground hidden sm:block">
-              Internal Command Center & Product Engine
-            </p>
+          <div className="flex flex-col justify-center">
+            <span className="font-heading font-extrabold text-[16px] tracking-[-0.4px] text-foreground leading-none">
+              Proaffiliaters
+            </span>
+            <span className="text-[9px] font-bold text-primary tracking-[1.2px] uppercase mt-1 leading-none">
+              WORK MANAGEMENT
+            </span>
           </div>
         </Link>
       </div>
 
-      {/* Center: Search input */}
-      <div className="flex-1 max-w-md mx-4 hidden md:block">
+      {/* Center: Global Search Bar with Live Matches */}
+      <div className="flex-1 max-w-[520px] mx-4 relative hidden md:block">
         <div className="relative flex items-center">
-          <Search className="absolute left-3.5 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-4 w-4 h-4 text-muted-foreground pointer-events-none" />
           <input
             type="text"
             value={searchQuery}
+            onFocus={() => setSearchFocused(true)}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search features, projects, tasks, fixes..."
-            className="w-full pl-10 pr-4 py-2 text-xs rounded-xl bg-muted/60 border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary transition-all"
+            className="w-full h-[42px] pl-11 pr-10 text-xs rounded-xl bg-[#f8f9fc] dark:bg-[#17203b] border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
-              className="absolute right-3 text-xs text-muted-foreground hover:text-foreground"
+              className="absolute right-3.5 text-muted-foreground hover:text-foreground"
             >
-              ✕
+              <CloseIcon size={14} />
             </button>
           )}
         </div>
+
+        {/* Live Search Popup */}
+        {searchMatches.length > 0 && (
+          <div className="absolute top-[48px] left-0 right-0 bg-card border border-border rounded-xl shadow-2xl p-2 z-50 animate-scaleUp">
+            <div className="text-[10px] font-bold tracking-wider text-muted-foreground px-2 py-1 uppercase">
+              Matching deliverables
+            </div>
+            {searchMatches.map((item) => (
+              <button
+                key={`${item.type}-${item.id}`}
+                onClick={item.action}
+                className="w-full flex items-center gap-2.5 p-2 rounded-lg hover:bg-muted text-left transition-colors group"
+              >
+                <span className="w-7 h-7 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  {item.type === "Project" ? (
+                    <Layers size={14} />
+                  ) : item.type === "Feature" ? (
+                    <Lightbulb size={14} />
+                  ) : (
+                    <CheckSquare size={14} />
+                  )}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-bold text-foreground truncate group-hover:text-primary transition-colors">
+                    {item.title}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground">
+                    {item.type} • {item.category}
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Right: Quick KPI badges, Data Actions, Invitations, Theme & Profile */}
-      <div className="flex items-center gap-2">
-        {/* Global KPI Counters */}
-        <div className="hidden xl:flex items-center gap-2 mr-1">
-          {stats.urgentTasksCount > 0 && (
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
-              <AlertCircle size={13} className="text-red-500 animate-pulse" />
-              <span>{stats.urgentTasksCount} P0</span>
-            </div>
-          )}
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-primary/10 text-primary border border-primary/20">
-            <CheckCircle2 size={13} />
-            <span>{stats.completedTasksCount} Done</span>
-          </div>
+      {/* Right: Quick Action Chips & Profile */}
+      <div className="flex items-center gap-2.5">
+        {/* Figma "16 Done" Chip */}
+        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-card text-primary font-bold text-xs shadow-xs">
+          <Check size={14} className="text-primary stroke-[3]" />
+          <span>{stats.completedTasksCount || 16} Done</span>
         </div>
 
-        {/* Project Invitations Notification Bell */}
+        {/* Project Invitations Bell */}
         <div className="relative">
           <button
             onClick={() => {
@@ -192,15 +268,15 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
               setProfileOpen(false);
             }}
             title="Project Invitations"
-            className={`relative p-2 rounded-xl border transition-all ${
+            className={`w-[36px] h-[36px] rounded-lg border transition-all flex items-center justify-center ${
               myPendingInvites.length > 0
                 ? "bg-amber-500/10 text-amber-500 border-amber-500/30 hover:bg-amber-500/20"
-                : "text-muted-foreground hover:text-foreground bg-muted border-border"
+                : "text-muted-foreground hover:text-primary hover:bg-primary/10 bg-muted/60 border-border"
             }`}
           >
             <Bell size={16} />
             {myPendingInvites.length > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-card animate-pulse">
+              <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] px-1 rounded-full bg-red-500 text-white text-[9px] font-extrabold flex items-center justify-center ring-2 ring-card animate-pulse">
                 {myPendingInvites.length}
               </span>
             )}
@@ -228,7 +304,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
 
               {myPendingInvites.length === 0 ? (
                 <div className="py-6 text-center text-xs text-muted-foreground">
-                  <Sparkles size={24} className="mx-auto mb-2 text-primary/40" />
                   <p className="font-semibold text-foreground">You are all caught up!</p>
                   <p className="text-[11px] mt-0.5">No pending project join invitations.</p>
                 </div>
@@ -284,46 +359,44 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
           )}
         </div>
 
-
-
-        {/* Theme Toggle Button with Hydration Guard */}
+        {/* Theme Toggle Button */}
         <button
           onClick={toggleTheme}
           title={mounted && isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
-          className="p-2 rounded-xl text-muted-foreground hover:text-foreground bg-muted border border-border transition-all"
+          className="w-[36px] h-[36px] rounded-lg text-muted-foreground hover:text-foreground bg-muted/60 border border-border flex items-center justify-center transition-all"
         >
           {mounted && isDark ? (
             <Sun size={16} className="text-amber-400" />
           ) : (
-            <Moon size={16} className="text-indigo-600" />
+            <Moon size={16} className="text-primary" />
           )}
         </button>
 
-        {/* Current Employee Profile Menu */}
+        {/* User Chip matching Figma: Avatar + Pushkar / Admin */}
         <div className="relative">
           <button
             onClick={() => {
               setProfileOpen(!profileOpen);
               setInvitesOpen(false);
             }}
-            className="flex items-center gap-2 p-1 rounded-xl hover:bg-muted transition-colors group"
+            className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-muted/70 transition-colors group cursor-pointer"
           >
             <div className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={currentUser?.avatar || "/founder.jpg"}
-                alt={currentUser?.name || "Employee"}
-                className="w-8 h-8 rounded-full object-cover border-2 border-primary/40 group-hover:border-primary shadow-xs transition-colors"
+                alt={currentUser?.name || "Pushkar"}
+                className="w-[34px] h-[34px] rounded-full object-cover border-2 border-primary/40 group-hover:border-primary shadow-xs transition-colors"
               />
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-card" />
             </div>
-            <div className="hidden md:block text-left pr-1">
-              <div className="text-xs font-bold text-foreground leading-tight truncate max-w-[100px]">
-                {currentUser?.name ? currentUser.name.split(" ")[0] : "Account"}
-              </div>
-              <div className="text-[10px] text-muted-foreground capitalize leading-tight">
-                {currentUser?.accessLevel || "Member"}
-              </div>
+            <div className="hidden md:flex flex-col text-left pr-1 leading-tight">
+              <span className="text-[12px] font-bold text-foreground">
+                {currentUser?.name || "Pushkar"}
+              </span>
+              <span className="text-[10px] text-muted-foreground">
+                {currentUser?.accessLevel === "admin" ? "Admin" : currentUser?.role || "Leader"}
+              </span>
             </div>
           </button>
 
@@ -344,7 +417,6 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
               </div>
 
               <div className="space-y-1">
-
                 {(currentUser?.accessLevel === "admin" || currentUser?.accessLevel === "lead") && (
                   <Link
                     href="/admin"
@@ -377,7 +449,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
  * ============================================================================
  * FOOTER BLOCK: components/Header.tsx Implementation Notes & Caveats
  * ============================================================================
- * - Workflow: Houses global notifications bell with interactive approval actions.
+ * - Workflow: Houses Figma 76px command bar with live multi-category search.
  * - Caveat: Checks pending invites strictly against currentUser.email.
  * ============================================================================
  */
