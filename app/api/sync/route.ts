@@ -65,7 +65,24 @@ export async function POST(req: Request) {
     await connectToDatabase();
     const body = await req.json();
 
-    const { projects, tasks, features, fixes, teamMembers } = body;
+    const { projects, tasks, features, fixes, teamMembers, invitations, deletedIds } = body;
+
+    // Purge any explicitly deleted items
+    if (deletedIds) {
+      if (Array.isArray(deletedIds.features) && deletedIds.features.length > 0) {
+        await FeatureModel.deleteMany({ id: { $in: deletedIds.features } });
+      }
+      if (Array.isArray(deletedIds.fixes) && deletedIds.fixes.length > 0) {
+        await FixModel.deleteMany({ id: { $in: deletedIds.fixes } });
+      }
+      if (Array.isArray(deletedIds.projects) && deletedIds.projects.length > 0) {
+        await ProjectModel.deleteMany({ id: { $in: deletedIds.projects } });
+        await TaskModel.deleteMany({ projectId: { $in: deletedIds.projects } });
+      }
+      if (Array.isArray(deletedIds.tasks) && deletedIds.tasks.length > 0) {
+        await TaskModel.deleteMany({ id: { $in: deletedIds.tasks } });
+      }
+    }
 
     // Batch upsert Projects
     if (Array.isArray(projects)) {
@@ -103,7 +120,6 @@ export async function POST(req: Request) {
     }
 
     // Batch upsert Invitations
-    const { invitations } = body;
     if (Array.isArray(invitations)) {
       for (const inv of invitations) {
         await ProjectInvitationModel.findOneAndUpdate({ id: inv.id }, inv, { upsert: true });

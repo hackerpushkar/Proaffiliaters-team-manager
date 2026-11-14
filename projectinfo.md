@@ -204,15 +204,19 @@ Team And Task Manager/
 - **Dual-Layer Full Function Database Architecture**:
   1. **MongoDB Master Engine**: Enterprise database integration (`lib/mongodb.ts`) running Mongoose models (`TeamMember`, `Project`, `Task`, `Feature`, `Fix`, `ProjectInvitation`) exposed via dedicated REST API endpoints:
      - `POST /api/auth/login`: Employee credential authentication.
-     - `GET / POST / PUT / DELETE /api/projects`: Full project database operations.
-     - `GET / POST / PUT / DELETE /api/tasks`: Full task deliverables database operations.
+     - `GET / POST / PUT / DELETE /api/projects`: Full project database operations with child task cascade deletion.
+     - `GET / POST / PUT / DELETE /api/tasks`: Full task deliverables database operations with priorityRank indexing.
+     - `GET / POST / PUT / DELETE /api/features`: Full upcoming features database operations (lifecycle phases, research points, document attachments, team votes).
+     - `GET / POST / PUT / DELETE /api/fixes`: Full bug triage and platform updates operations (severity triage, root cause notes, changelog deployment stamps).
      - `GET / POST / PUT /api/invitations`: Gmail invite dispatch and approval workflow.
      - `GET / POST / PUT / DELETE /api/team`: Admin team member provisioning.
-     - `GET / POST /api/sync`: Two-way cloud migration and batch upsert.
-  2. **Client State & Offline Engine**: React Context API (`lib/store.tsx`) paired with `localStorage` for instant zero-latency UI interactions with seamless background MongoDB syncing.
+     - `GET / POST /api/sync`: Two-way cloud migration, batch upsert, and explicit deletion purge.
+  2. **Client State & Offline Engine**: React Context API (`lib/store.tsx`) paired with `localStorage` for instant zero-latency UI interactions with seamless background MongoDB syncing:
+     - **Intelligent Two-Way Reconciliation**: On mount, state hydrates from `localStorage` immediately, then checks `/api/sync`. Any local items created offline are automatically synchronized to MongoDB rather than wiped out, and server updates are merged cleanly.
+     - **Immediate Deletion Guarantees**: Deletions for projects, tasks, features, and fixes immediately dispatch HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
 - **Storage Keys**:
-  - Database Cache: `proaffiliaters_team_task_manager_v2`
-  - Active Session: `proaffiliaters_session_user_v2`
+  - Database Cache: `proaffiliaters_team_task_manager_v3`
+  - Active Session: `proaffiliaters_session_user_v3`
 
 ---
 

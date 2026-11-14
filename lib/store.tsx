@@ -222,26 +222,148 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
 
       // Restore collections from LocalStorage
       const stored = localStorage.getItem(STORAGE_KEY);
+      let localData: any = null;
       if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.features && Array.isArray(parsed.features)) setFeatures(parsed.features);
-        if (parsed.projects && Array.isArray(parsed.projects)) setProjects(parsed.projects);
-        if (parsed.tasks && Array.isArray(parsed.tasks)) setTasks(parsed.tasks);
-        if (parsed.fixes && Array.isArray(parsed.fixes)) setFixes(parsed.fixes);
-        if (parsed.teamMembers && Array.isArray(parsed.teamMembers)) setTeamMembers(parsed.teamMembers);
-        if (parsed.invitations && Array.isArray(parsed.invitations)) setInvitations(parsed.invitations);
+        try {
+          localData = JSON.parse(stored);
+          if (localData.features && Array.isArray(localData.features)) setFeatures(localData.features);
+          if (localData.projects && Array.isArray(localData.projects)) setProjects(localData.projects);
+          if (localData.tasks && Array.isArray(localData.tasks)) setTasks(localData.tasks);
+          if (localData.fixes && Array.isArray(localData.fixes)) setFixes(localData.fixes);
+          if (localData.teamMembers && Array.isArray(localData.teamMembers)) setTeamMembers(localData.teamMembers);
+          if (localData.invitations && Array.isArray(localData.invitations)) setInvitations(localData.invitations);
+        } catch (e) {
+          console.warn("Failed to parse local stored data:", e);
+        }
       }
 
-      // Attempt background sync with MongoDB backend
+      // Background synchronization and intelligent reconciliation with MongoDB
       fetch("/api/sync")
         .then((res) => (res.ok ? res.json() : null))
         .then((data) => {
           if (data && data.success && data.data) {
             const db = data.data;
-            if (db.projects && db.projects.length > 0) setProjects(db.projects);
-            if (db.tasks && db.tasks.length > 0) setTasks(db.tasks);
-            if (db.features && db.features.length > 0) setFeatures(db.features);
-            if (db.fixes && db.fixes.length > 0) setFixes(db.fixes);
+
+            // Reconcile Features: preserve unsynced local items & adopt server snapshot
+            if (Array.isArray(db.features)) {
+              if (db.features.length > 0) {
+                if (localData?.features && Array.isArray(localData.features)) {
+                  const dbIds = new Set(db.features.map((f: any) => f.id));
+                  const unsynced = localData.features.filter((f: any) => !dbIds.has(f.id));
+                  if (unsynced.length > 0) {
+                    unsynced.forEach((f: any) => {
+                      fetch("/api/features", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(f),
+                      }).catch(() => {});
+                    });
+                    setFeatures([...unsynced, ...db.features]);
+                  } else {
+                    setFeatures(db.features);
+                  }
+                } else {
+                  setFeatures(db.features);
+                }
+              } else if (localData?.features && localData.features.length > 0) {
+                fetch("/api/sync", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ features: localData.features }),
+                }).catch(() => {});
+              }
+            }
+
+            // Reconcile Fixes & Updates: guarantee newly added fixes are never overwritten
+            if (Array.isArray(db.fixes)) {
+              if (db.fixes.length > 0) {
+                if (localData?.fixes && Array.isArray(localData.fixes)) {
+                  const dbIds = new Set(db.fixes.map((f: any) => f.id));
+                  const unsynced = localData.fixes.filter((f: any) => !dbIds.has(f.id));
+                  if (unsynced.length > 0) {
+                    unsynced.forEach((f: any) => {
+                      fetch("/api/fixes", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(f),
+                      }).catch(() => {});
+                    });
+                    setFixes([...unsynced, ...db.fixes]);
+                  } else {
+                    setFixes(db.fixes);
+                  }
+                } else {
+                  setFixes(db.fixes);
+                }
+              } else if (localData?.fixes && localData.fixes.length > 0) {
+                fetch("/api/sync", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ fixes: localData.fixes }),
+                }).catch(() => {});
+              }
+            }
+
+            // Reconcile Projects:
+            if (Array.isArray(db.projects)) {
+              if (db.projects.length > 0) {
+                if (localData?.projects && Array.isArray(localData.projects)) {
+                  const dbIds = new Set(db.projects.map((p: any) => p.id));
+                  const unsynced = localData.projects.filter((p: any) => !dbIds.has(p.id));
+                  if (unsynced.length > 0) {
+                    unsynced.forEach((p: any) => {
+                      fetch("/api/projects", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(p),
+                      }).catch(() => {});
+                    });
+                    setProjects([...unsynced, ...db.projects]);
+                  } else {
+                    setProjects(db.projects);
+                  }
+                } else {
+                  setProjects(db.projects);
+                }
+              } else if (localData?.projects && localData.projects.length > 0) {
+                fetch("/api/sync", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ projects: localData.projects }),
+                }).catch(() => {});
+              }
+            }
+
+            // Reconcile Tasks:
+            if (Array.isArray(db.tasks)) {
+              if (db.tasks.length > 0) {
+                if (localData?.tasks && Array.isArray(localData.tasks)) {
+                  const dbIds = new Set(db.tasks.map((t: any) => t.id));
+                  const unsynced = localData.tasks.filter((t: any) => !dbIds.has(t.id));
+                  if (unsynced.length > 0) {
+                    unsynced.forEach((t: any) => {
+                      fetch("/api/tasks", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(t),
+                      }).catch(() => {});
+                    });
+                    setTasks([...unsynced, ...db.tasks]);
+                  } else {
+                    setTasks(db.tasks);
+                  }
+                } else {
+                  setTasks(db.tasks);
+                }
+              } else if (localData?.tasks && localData.tasks.length > 0) {
+                fetch("/api/sync", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ tasks: localData.tasks }),
+                }).catch(() => {});
+              }
+            }
+
             if (db.teamMembers && db.teamMembers.length > 0) setTeamMembers(db.teamMembers);
             if (db.invitations && db.invitations.length > 0) setInvitations(db.invitations);
           }
@@ -498,16 +620,35 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split("T")[0],
     };
     setFeatures((prev) => [newFeat, ...prev]);
+
+    // Persist immediately to MongoDB
+    fetch("/api/features", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newFeat),
+    }).catch(() => {});
   };
 
   const updateFeature = (id: string, updates: Partial<UpcomingFeature>) => {
     setFeatures((prev) =>
       prev.map((f) => (f.id === id ? { ...f, ...updates, updatedAt: new Date().toISOString().split("T")[0] } : f))
     );
+
+    // Persist immediately to MongoDB
+    fetch("/api/features", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...updates }),
+    }).catch(() => {});
   };
 
   const deleteFeature = (id: string) => {
     setFeatures((prev) => prev.filter((f) => f.id !== id));
+
+    // Permanently purge from MongoDB
+    fetch(`/api/features?id=${id}`, {
+      method: "DELETE",
+    }).catch(() => {});
   };
 
   const voteFeature = (id: string) => {
@@ -515,10 +656,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       prev.map((f) => {
         if (f.id === id) {
           const nextVoted = !f.hasVoted;
+          const nextVotes = nextVoted ? f.votes + 1 : Math.max(0, f.votes - 1);
+          fetch("/api/features", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, votes: nextVotes }),
+          }).catch(() => {});
           return {
             ...f,
             hasVoted: nextVoted,
-            votes: nextVoted ? f.votes + 1 : Math.max(0, f.votes - 1),
+            votes: nextVotes,
           };
         }
         return f;
@@ -663,6 +810,16 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       }).catch(() => {});
     });
 
+    fetch("/api/features", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: featureId,
+        status: "in_progress",
+        convertedProjectId: newProject.id,
+      }),
+    }).catch(() => {});
+
     return newProject;
   };
 
@@ -675,39 +832,62 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split("T")[0],
     };
     setFeatures((prev) =>
-      prev.map((f) =>
-        f.id === featureId
-          ? { ...f, points: [...(f.points || []), newPoint], updatedAt: new Date().toISOString().split("T")[0] }
-          : f
-      )
+      prev.map((f) => {
+        if (f.id === featureId) {
+          const updatedPoints = [...(f.points || []), newPoint];
+          fetch("/api/features", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: featureId, points: updatedPoints }),
+          }).catch(() => {});
+          return { ...f, points: updatedPoints, updatedAt: new Date().toISOString().split("T")[0] };
+        }
+        return f;
+      })
     );
   };
 
   const toggleFeaturePoint = (featureId: string, pointId: string) => {
     setFeatures((prev) =>
-      prev.map((f) =>
-        f.id === featureId
-          ? {
-              ...f,
-              points: (f.points || []).map((pt) =>
-                pt.id === pointId ? { ...pt, completed: !pt.completed } : pt
-              ),
-            }
-          : f
-      )
+      prev.map((f) => {
+        if (f.id === featureId) {
+          const updatedPoints = (f.points || []).map((pt) =>
+            pt.id === pointId ? { ...pt, completed: !pt.completed } : pt
+          );
+          fetch("/api/features", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: featureId, points: updatedPoints }),
+          }).catch(() => {});
+          return {
+            ...f,
+            points: updatedPoints,
+            updatedAt: new Date().toISOString().split("T")[0],
+          };
+        }
+        return f;
+      })
     );
   };
 
   const deleteFeaturePoint = (featureId: string, pointId: string) => {
     setFeatures((prev) =>
-      prev.map((f) =>
-        f.id === featureId
-          ? {
-              ...f,
-              points: (f.points || []).filter((pt) => pt.id !== pointId),
-            }
-          : f
-      )
+      prev.map((f) => {
+        if (f.id === featureId) {
+          const updatedPoints = (f.points || []).filter((pt) => pt.id !== pointId);
+          fetch("/api/features", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: featureId, points: updatedPoints }),
+          }).catch(() => {});
+          return {
+            ...f,
+            points: updatedPoints,
+            updatedAt: new Date().toISOString().split("T")[0],
+          };
+        }
+        return f;
+      })
     );
   };
 
@@ -721,24 +901,39 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       uploadedAt: new Date().toISOString().split("T")[0],
     };
     setFeatures((prev) =>
-      prev.map((f) =>
-        f.id === featureId
-          ? { ...f, documents: [...(f.documents || []), newDoc], updatedAt: new Date().toISOString().split("T")[0] }
-          : f
-      )
+      prev.map((f) => {
+        if (f.id === featureId) {
+          const updatedDocs = [...(f.documents || []), newDoc];
+          fetch("/api/features", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: featureId, documents: updatedDocs }),
+          }).catch(() => {});
+          return { ...f, documents: updatedDocs, updatedAt: new Date().toISOString().split("T")[0] };
+        }
+        return f;
+      })
     );
   };
 
   const deleteFeatureDocument = (featureId: string, docId: string) => {
     setFeatures((prev) =>
-      prev.map((f) =>
-        f.id === featureId
-          ? {
-              ...f,
-              documents: (f.documents || []).filter((d) => d.id !== docId),
-            }
-          : f
-      )
+      prev.map((f) => {
+        if (f.id === featureId) {
+          const updatedDocs = (f.documents || []).filter((d) => d.id !== docId);
+          fetch("/api/features", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id: featureId, documents: updatedDocs }),
+          }).catch(() => {});
+          return {
+            ...f,
+            documents: updatedDocs,
+            updatedAt: new Date().toISOString().split("T")[0],
+          };
+        }
+        return f;
+      })
     );
   };
 
@@ -1038,26 +1233,48 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split("T")[0],
     };
     setFixes((prev) => [newFix, ...prev]);
+
+    // Persist immediately to MongoDB
+    fetch("/api/fixes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newFix),
+    }).catch(() => {});
   };
 
   const updateFix = (id: string, updates: Partial<FixUpdate>) => {
+    let payloadToSend: any = { id, ...updates };
     setFixes((prev) =>
       prev.map((f) => {
         if (f.id === id) {
           const isNowDeployed = updates.status === "deployed" && f.status !== "deployed";
-          return {
+          const updated = {
             ...f,
             ...updates,
             resolvedAt: isNowDeployed ? new Date().toISOString().split("T")[0] : f.resolvedAt,
           };
+          payloadToSend = updated;
+          return updated;
         }
         return f;
       })
     );
+
+    // Persist immediately to MongoDB
+    fetch("/api/fixes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payloadToSend),
+    }).catch(() => {});
   };
 
   const deleteFix = (id: string) => {
     setFixes((prev) => prev.filter((f) => f.id !== id));
+
+    // Permanently purge from MongoDB
+    fetch(`/api/fixes?id=${id}`, {
+      method: "DELETE",
+    }).catch(() => {});
   };
 
   // TEAM MEMBER ACTIONS
@@ -1271,7 +1488,13 @@ export function useTaskStore() {
  * ============================================================================
  * FOOTER BLOCK: lib/store.tsx Implementation Notes & Caveats
  * ============================================================================
- * - Workflow: Mounts once at root, hydrates from localStorage and /api/sync.
+ * - Workflow: Mounts once at root, hydrates instantly from localStorage and
+ *   intelligently reconciles with MongoDB via /api/sync.
+ * - Real-Time API Sync: All CRUD operations across Projects (/api/projects),
+ *   Tasks (/api/tasks), Features (/api/features), and Fixes (/api/fixes)
+ *   are dispatched immediately to MongoDB with optimistic UI updates.
+ * - Deletion Guarantees: Deletions dispatch real-time HTTP DELETE queries to
+ *   purge records from MongoDB, preventing ghost resurrection on reload.
  * - Authentication: Stores session in localStorage; supports fallback when offline.
  * - Invitations: Updates project.teamMemberEmails upon invite acceptance.
  * ============================================================================
