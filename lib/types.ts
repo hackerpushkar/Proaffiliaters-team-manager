@@ -195,6 +195,28 @@ export type ContentPlatform =
   | "Website"
   | "Other";
 
+export interface ScriptAttachment {
+  name: string;
+  type?: string;
+  url: string;
+  size?: string;
+  format?: "docs" | "pdf" | "image" | "link";
+}
+
+export interface ContentStats {
+  views?: string;
+  likes?: string;
+  comments?: string;
+  clicks?: string;
+  spend?: string;
+  conversions?: string;
+  roas?: string;
+  cpc?: string;
+  impressions?: string;
+  customNotes?: string;
+  updatedAt?: string;
+}
+
 export interface ContentItem {
   id: string;
   type: ContentType;
@@ -211,6 +233,8 @@ export interface ContentItem {
   };
   assigneeEmail?: string;
   scriptUrl?: string;
+  scriptAttachment?: ScriptAttachment;
+  stats?: ContentStats;
   rawFootageUrl?: string;
   publishedUrl?: string;
   notes?: string;

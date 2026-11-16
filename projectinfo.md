@@ -212,7 +212,11 @@ Team And Task Manager/
   - Completed items (`status === "public"` or `status === "live"`) or archived items are organized in an **Achieved Videos** view.
   - Active Pipeline stays clean and sprint-oriented; completed videos can be opened, inspected, and viewed live via one-click external links.
 - **Interactive Status Select Container**: Compact dropdown selector with color-coded stage badge and pulse indicator for instant 1-click stage transitions directly within the title row, replacing cumbersome button steppers and minimizing container height.
-- **Attributes**: `id`, `type` (`organic` | `ad`), `title`, `description`, `startDate`, `endDate`, `status`, `platform`, `assignee`, `assigneeEmail`, `scriptUrl`, `rawFootageUrl`, `publishedUrl`, `notes`, `isArchived`, `createdAt`, `updatedAt`, `completedAt`.
+- **Production Script Manager (Multi-Format)**: Direct access to attach, preview, and update production scripts across Google Docs, PDFs, Images (storyboards/shot lists), and raw voiceover text directly from each card (`ContentScriptModal.tsx`).
+- **Dynamic Performance & Analytics Engine (Editable Over Time)**: Track and edit performance metrics anytime as analytics evolve (`ContentStatsModal.tsx`):
+  - **Organic Videos**: Views, Likes, Comments, Clicks / Link Visits, Avg Watch Time / Retention, and qualitative notes.
+  - **Paid Ads Manager**: Ad Spend (₹/$), Impressions, Link Clicks, Conversions / Leads, ROAS, CPC, and campaign angle notes.
+- **Attributes**: `id`, `type` (`organic` | `ad`), `title`, `description`, `startDate`, `endDate`, `status`, `platform`, `assignee`, `assigneeEmail`, `scriptUrl`, `scriptAttachment` (`name`, `url`, `type`, `size`, `format`), `stats` (`views`, `likes`, `comments`, `clicks`, `spend`, `conversions`, `roas`, `cpc`, `impressions`, `customNotes`, `updatedAt`), `rawFootageUrl`, `publishedUrl`, `notes`, `isArchived`, `createdAt`, `updatedAt`, `completedAt`.
 
 ---
 

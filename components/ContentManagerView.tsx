@@ -50,6 +50,9 @@ import {
   Eye,
   RefreshCw,
   Layers,
+  FileCheck,
+  Image as ImageIcon,
+  BarChart2,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 import {
@@ -59,7 +62,11 @@ import {
   ContentPlatform,
   OrganicContentStatus,
   AdContentStatus,
+  ScriptAttachment,
+  ContentStats,
 } from "@/lib/types";
+import { ContentScriptModal } from "@/components/ContentScriptModal";
+import { ContentStatsModal } from "@/components/ContentStatsModal";
 
 interface ContentManagerViewProps {
   onOpenAddModal: (type?: ContentType) => void;
@@ -102,6 +109,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
 }) => {
   const {
     contentItems,
+    updateContentItem,
     deleteContentItem,
     moveContentStatus,
     archiveContentItem,
@@ -113,6 +121,10 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedPlatform, setSelectedPlatform] = useState<string>("all");
   const [selectedStage, setSelectedStage] = useState<string>("all");
+
+  // Script & Stats Modal States
+  const [scriptModalItem, setScriptModalItem] = useState<ContentItem | null>(null);
+  const [statsModalItem, setStatsModalItem] = useState<ContentItem | null>(null);
 
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
@@ -702,11 +714,130 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                     )}
                   </div>
                 </div>
+
+                {/* Lower Row: Script Manager (Left Box) & Performance Data (Right Box) */}
+                <div className="flex flex-wrap items-center gap-2.5 pt-2 border-t border-border/40">
+                  {/* Left Box: Script Manager */}
+                  <div className="flex items-center">
+                    {item.scriptAttachment || item.scriptUrl ? (
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-bold bg-primary/10 text-primary border border-primary/25 hover:bg-primary/15 transition-all">
+                        {item.scriptAttachment?.format === "pdf" ? (
+                          <FileCheck size={13} className="text-red-500" />
+                        ) : item.scriptAttachment?.format === "image" ? (
+                          <ImageIcon size={13} className="text-amber-500" />
+                        ) : (
+                          <FileText size={13} className="text-primary" />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => setScriptModalItem(item)}
+                          className="hover:underline truncate max-w-[170px] sm:max-w-[240px] text-left"
+                          title="View / Manage Script Document"
+                        >
+                          {item.scriptAttachment?.name || "View Script"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setScriptModalItem(item)}
+                          className="p-0.5 rounded hover:bg-primary/20 transition-colors ml-0.5"
+                          title="Edit Script"
+                        >
+                          <Edit2 size={11} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setScriptModalItem(item)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border border-dashed transition-all"
+                        title="Add Script (Docs, PDF, or Image)"
+                      >
+                        <Plus size={12} className="text-primary" />
+                        <span>Add Script</span>
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Right Box: Performance Data & Analytics */}
+                  <div className="flex items-center">
+                    {item.stats && Object.keys(item.stats).length > 0 && (item.stats.views || item.stats.spend || item.stats.clicks || item.stats.conversions || item.stats.roas) ? (
+                      <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-xl text-xs font-bold bg-purple-500/10 text-purple-700 dark:text-purple-300 border border-purple-500/25 hover:bg-purple-500/15 transition-all">
+                        <BarChart2 size={13} className="text-purple-600 dark:text-purple-400 shrink-0" />
+                        <span className="truncate max-w-[200px] sm:max-w-[280px]">
+                          {item.type === "organic"
+                            ? [
+                                item.stats.views ? `${item.stats.views} Views` : null,
+                                item.stats.likes ? `${item.stats.likes} Likes` : null,
+                                item.stats.clicks ? `${item.stats.clicks} Clicks` : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" • ") || "Analytics Tracked"
+                            : [
+                                item.stats.spend ? `${item.stats.spend} Spend` : null,
+                                item.stats.roas ? `${item.stats.roas} ROAS` : null,
+                                item.stats.conversions ? `${item.stats.conversions}` : null,
+                              ]
+                                .filter(Boolean)
+                                .join(" • ") || "Ad Stats Tracked"}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setStatsModalItem(item)}
+                          className="p-0.5 rounded hover:bg-purple-500/20 text-purple-600 dark:text-purple-300 transition-colors ml-0.5"
+                          title="Edit Analytics Data"
+                        >
+                          <Edit2 size={11} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setStatsModalItem(item)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground border border-border border-dashed transition-all"
+                        title={item.type === "organic" ? "Add Video Performance Data" : "Add Ad Metrics & ROAS"}
+                      >
+                        <BarChart2 size={12} className="text-purple-500" />
+                        <span>Add Data</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Script Modal Dialog */}
+      <ContentScriptModal
+        isOpen={Boolean(scriptModalItem)}
+        item={scriptModalItem}
+        onClose={() => setScriptModalItem(null)}
+        onSave={(attachment, url) => {
+          if (scriptModalItem) {
+            updateContentItem(scriptModalItem.id, {
+              scriptAttachment: attachment,
+              scriptUrl: url || "",
+            });
+            setScriptModalItem((prev) =>
+              prev ? { ...prev, scriptAttachment: attachment, scriptUrl: url || "" } : null
+            );
+          }
+        }}
+      />
+
+      {/* Stats & Analytics Modal Dialog */}
+      <ContentStatsModal
+        isOpen={Boolean(statsModalItem)}
+        item={statsModalItem}
+        onClose={() => setStatsModalItem(null)}
+        onSave={(newStats) => {
+          if (statsModalItem) {
+            updateContentItem(statsModalItem.id, { stats: newStats });
+            setStatsModalItem((prev) => (prev ? { ...prev, stats: newStats } : null));
+          }
+        }}
+      />
     </div>
   );
 };

@@ -36,6 +36,26 @@ export interface IContentItemDocument extends Document {
   };
   assigneeEmail?: string;
   scriptUrl?: string;
+  scriptAttachment?: {
+    name: string;
+    type?: string;
+    url: string;
+    size?: string;
+    format?: string;
+  };
+  stats?: {
+    views?: string;
+    likes?: string;
+    comments?: string;
+    clicks?: string;
+    spend?: string;
+    conversions?: string;
+    roas?: string;
+    cpc?: string;
+    impressions?: string;
+    customNotes?: string;
+    updatedAt?: string;
+  };
   rawFootageUrl?: string;
   publishedUrl?: string;
   notes?: string;
@@ -77,6 +97,26 @@ const ContentItemSchema = new Schema<IContentItemDocument>(
     },
     assigneeEmail: { type: String, default: "" },
     scriptUrl: { type: String, default: "" },
+    scriptAttachment: {
+      name: { type: String },
+      type: { type: String },
+      url: { type: String },
+      size: { type: String },
+      format: { type: String },
+    },
+    stats: {
+      views: { type: String },
+      likes: { type: String },
+      comments: { type: String },
+      clicks: { type: String },
+      spend: { type: String },
+      conversions: { type: String },
+      roas: { type: String },
+      cpc: { type: String },
+      impressions: { type: String },
+      customNotes: { type: String },
+      updatedAt: { type: String },
+    },
     rawFootageUrl: { type: String, default: "" },
     publishedUrl: { type: String, default: "" },
     notes: { type: String, default: "" },
