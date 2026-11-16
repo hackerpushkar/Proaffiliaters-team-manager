@@ -397,11 +397,6 @@ export const ContentModal: React.FC<ContentModalProps> = ({
                 />
               </div>
             </div>
-            {type === "organic" && (
-              <p className="text-[10px] text-amber-600 dark:text-amber-400">
-                Notice: If this video passes its End Deadline without reaching Public, its container will highlight in Red.
-              </p>
-            )}
           </div>
 
           {/* 6-Stage Current Status Selector */}
