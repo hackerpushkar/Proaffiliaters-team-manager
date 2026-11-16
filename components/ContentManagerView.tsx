@@ -44,6 +44,7 @@ import {
   ArrowRight,
   Archive,
   ChevronRight,
+  ChevronDown,
   FileText,
   Film,
   Eye,
@@ -642,52 +643,33 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                     )}
                   </div>
 
-                  {/* Status Badge in the exact highlighted box */}
-                  <div className="shrink-0 flex items-center">
-                    <span
-                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border transition-all ${getStatusBadgeStyle(
+                  {/* Status Select Container & Actions in the highlighted box */}
+                  <div className="shrink-0 flex items-center gap-2">
+                    {/* Status Select Input Container */}
+                    <div
+                      className={`relative inline-flex items-center rounded-xl border transition-all ${getStatusBadgeStyle(
                         item.status,
                         isOverdue
                       )}`}
                     >
-                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                      <span>{STAGE_LABELS[item.status]}</span>
-                    </span>
-                  </div>
-                </div>
-
-                {/* 6-Stage Visual Stepper */}
-                <div className="pt-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-muted/40 border border-border">
-                    {/* Stepper Dots & Labels */}
-                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
-                      {stagesList.map((st, idx) => {
-                        const isCurrent = item.status === st;
-                        const isPassed = currentStageIndex > idx;
-                        const isPublicOrLive = st === "public" || st === "live";
-
-                        return (
-                          <button
-                            key={st}
-                            type="button"
-                            onClick={() => moveContentStatus(item.id, st)}
-                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 ${
-                              isCurrent
-                                ? isPublicOrLive
-                                  ? "bg-emerald-500 text-white shadow-xs"
-                                  : "bg-primary text-white shadow-xs"
-                                : isPassed
-                                ? "bg-muted text-foreground/80 hover:bg-muted/80"
-                                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-                            }`}
-                            title={`Set status to ${STAGE_LABELS[st]}`}
-                          >
-                            <span>{idx + 1}.</span>
-                            <span>{STAGE_LABELS[st].replace(" (Done)", "").replace(" (Active)", "")}</span>
-                            {isPassed && <CheckCircle2 size={10} className="text-emerald-500 ml-0.5" />}
-                          </button>
-                        );
-                      })}
+                      <span className="absolute left-2.5 pointer-events-none flex items-center text-current">
+                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                      </span>
+                      <select
+                        value={item.status}
+                        onChange={(e) => moveContentStatus(item.id, e.target.value as ContentStatus)}
+                        className="appearance-none bg-transparent pl-6 pr-7 py-1 text-xs font-extrabold cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/30 rounded-xl"
+                        title="Change production stage"
+                      >
+                        {stagesList.map((st, idx) => (
+                          <option key={st} value={st} className="bg-card text-foreground font-semibold py-1">
+                            {idx + 1}. {STAGE_LABELS[st].replace(" (Done)", "").replace(" (Active)", "")}
+                          </option>
+                        ))}
+                      </select>
+                      <span className="absolute right-2 pointer-events-none text-current opacity-70">
+                        <ChevronDown size={13} />
+                      </span>
                     </div>
 
                     {/* Quick Step Advance Button */}
@@ -695,10 +677,10 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleAdvanceStage(item)}
-                        className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 transition-all flex items-center gap-1 shrink-0 self-end sm:self-auto"
+                        className="px-2.5 py-1 rounded-xl text-xs font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 transition-all flex items-center gap-1 shrink-0"
                         title="Advance to next production stage"
                       >
-                        <span>Next Stage</span>
+                        <span>Next</span>
                         <ChevronRight size={12} />
                       </button>
                     )}
@@ -708,13 +690,13 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                       <button
                         type="button"
                         onClick={() => archiveContentItem(item.id, !item.isArchived)}
-                        className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border transition-all flex items-center gap-1 shrink-0 self-end sm:self-auto ${
+                        className={`px-2.5 py-1 rounded-xl text-xs font-bold border transition-all flex items-center gap-1 shrink-0 ${
                           item.isArchived
                             ? "bg-muted text-muted-foreground border-border hover:text-foreground"
                             : "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20"
                         }`}
                       >
-                        <Archive size={11} />
+                        <Archive size={12} />
                         <span>{item.isArchived ? "Archived" : "Archive"}</span>
                       </button>
                     )}

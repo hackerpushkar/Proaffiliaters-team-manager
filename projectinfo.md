@@ -211,6 +211,7 @@ Team And Task Manager/
 - **Achieved / Completed Videos Archive**:
   - Completed items (`status === "public"` or `status === "live"`) or archived items are organized in an **Achieved Videos** view.
   - Active Pipeline stays clean and sprint-oriented; completed videos can be opened, inspected, and viewed live via one-click external links.
+- **Interactive Status Select Container**: Compact dropdown selector with color-coded stage badge and pulse indicator for instant 1-click stage transitions directly within the title row, replacing cumbersome button steppers and minimizing container height.
 - **Attributes**: `id`, `type` (`organic` | `ad`), `title`, `description`, `startDate`, `endDate`, `status`, `platform`, `assignee`, `assigneeEmail`, `scriptUrl`, `rawFootageUrl`, `publishedUrl`, `notes`, `isArchived`, `createdAt`, `updatedAt`, `completedAt`.
 
 ---
