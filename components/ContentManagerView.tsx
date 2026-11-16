@@ -202,7 +202,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
       return (
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-extrabold bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 animate-pulse">
           <AlertTriangle size={12} />
-          <span>⚠️ Overdue by {daysOverdue} {daysOverdue === 1 ? "day" : "days"} (Due {item.endDate})</span>
+          <span>Overdue by {daysOverdue} {daysOverdue === 1 ? "day" : "days"} (Due {item.endDate})</span>
         </span>
       );
     }
@@ -211,7 +211,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
       return (
         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
           <Clock size={12} />
-          <span>📌 Due Today</span>
+          <span>Due Today</span>
         </span>
       );
     }
@@ -219,9 +219,29 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
     return (
       <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-muted text-muted-foreground border border-border">
         <Clock size={12} />
-        <span>⏳ {diffDays} {diffDays === 1 ? "day" : "days"} left (Due {item.endDate})</span>
+        <span>{diffDays} {diffDays === 1 ? "day" : "days"} left (Due {item.endDate})</span>
       </span>
     );
+  };
+
+  // Helper: Status badge style for the card box
+  const getStatusBadgeStyle = (status: ContentStatus, isOverdue: boolean) => {
+    if (isOverdue) {
+      return "bg-red-500/15 text-red-600 dark:text-red-400 border-red-500/30";
+    }
+    if (status === "public" || status === "live") {
+      return "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30";
+    }
+    if (status === "review" || status === "reviews" || status === "checking") {
+      return "bg-purple-500/15 text-purple-600 dark:text-purple-400 border-purple-500/30";
+    }
+    if (status === "editing") {
+      return "bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30";
+    }
+    if (status === "scripting" || status === "shooting") {
+      return "bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border-indigo-500/30";
+    }
+    return "bg-primary/15 text-primary border-primary/30";
   };
 
   // Handle stage advancing
@@ -352,7 +372,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
             }`}
           >
             <Video size={14} />
-            <span>📹 Organic Videos</span>
+            <span>Organic Videos</span>
             <span className="px-1.5 py-0.2 rounded-md bg-muted text-[10px] font-mono">
               {organicActiveCount}
             </span>
@@ -368,7 +388,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
             }`}
           >
             <Target size={14} />
-            <span>🎯 Paid Ads Manager</span>
+            <span>Paid Ads Manager</span>
             <span className="px-1.5 py-0.2 rounded-md bg-muted text-[10px] font-mono">
               {adsActiveCount}
             </span>
@@ -495,7 +515,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
           )}
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredItems.map((item) => {
             const isOverdue = isItemOverdue(item);
             const stagesList = item.type === "organic" ? ORGANIC_ORDER : AD_ORDER;
@@ -505,18 +525,22 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
             return (
               <div
                 key={item.id}
-                className={`group p-5 rounded-2xl transition-all duration-200 border ${
+                className={`group p-3.5 sm:p-4 rounded-xl transition-all duration-200 border ${
                   isOverdue
-                    ? "bg-red-500/5 dark:bg-red-950/20 border-red-500/60 shadow-lg shadow-red-500/10 ring-1 ring-red-500/30"
+                    ? "bg-red-500/5 dark:bg-red-950/20 border-red-500/60 shadow-md shadow-red-500/10 ring-1 ring-red-500/30"
                     : "bg-card border-border hover:border-primary/40 shadow-xs hover:shadow-md"
                 }`}
               >
                 {/* Top Row: Meta badges, Platform, Deadline & Quick Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/60">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-border/40">
                   <div className="flex flex-wrap items-center gap-2">
                     {/* Platform Chip */}
-                    <span className="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-muted text-foreground border border-border flex items-center gap-1.5">
-                      {item.type === "organic" ? <Video size={12} className="text-primary" /> : <Target size={12} className="text-purple-500" />}
+                    <span className="px-2 py-0.5 rounded-lg text-[11px] font-extrabold bg-muted text-foreground border border-border flex items-center gap-1.5">
+                      {item.type === "organic" ? (
+                        <Video size={11} className="text-primary" />
+                      ) : (
+                        <Target size={11} className="text-purple-500" />
+                      )}
                       <span>{item.platform || "YouTube"}</span>
                     </span>
 
@@ -530,7 +554,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                         <img
                           src={item.assignee.avatar || "/founder.jpg"}
                           alt={item.assignee.name}
-                          className="w-4 h-4 rounded-full object-cover border border-border"
+                          className="w-3.5 h-3.5 rounded-full object-cover border border-border"
                         />
                         <span>{item.assignee.name}</span>
                       </span>
@@ -538,17 +562,17 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                   </div>
 
                   {/* Actions Row */}
-                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                  <div className="flex items-center gap-1 shrink-0 self-end sm:self-auto">
                     {/* Live link if available */}
                     {item.publishedUrl && (
                       <a
                         href={item.publishedUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold border border-emerald-500/25 transition-all flex items-center gap-1"
+                        className="px-2 py-0.5 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold border border-emerald-500/25 transition-all flex items-center gap-1"
                         title="Open live published URL"
                       >
-                        <ExternalLink size={12} />
+                        <ExternalLink size={11} />
                         <span>Watch Live</span>
                       </a>
                     )}
@@ -559,10 +583,10 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                         href={item.scriptUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                        className="p-1 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                         title="Open Script Document"
                       >
-                        <FileText size={14} />
+                        <FileText size={13} />
                       </a>
                     )}
 
@@ -572,10 +596,10 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                         href={item.rawFootageUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                        className="p-1 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                         title="Open Raw Footage Folder"
                       >
-                        <Film size={14} />
+                        <Film size={13} />
                       </a>
                     )}
 
@@ -583,10 +607,10 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                     <button
                       type="button"
                       onClick={() => onOpenEditModal(item)}
-                      className="p-1.5 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
+                      className="p-1 rounded-lg border border-border bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all"
                       title="Edit Content Item"
                     >
-                      <Edit2 size={14} />
+                      <Edit2 size={13} />
                     </button>
 
                     {/* Delete button */}
@@ -597,31 +621,46 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                           deleteContentItem(item.id);
                         }
                       }}
-                      className="p-1.5 rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
+                      className="p-1 rounded-lg border border-red-500/20 bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-all"
                       title="Delete Content Item"
                     >
-                      <Trash2 size={14} />
+                      <Trash2 size={13} />
                     </button>
                   </div>
                 </div>
 
-                {/* Middle: Video Title & Creative Hook */}
-                <div className="py-3">
-                  <h3 className="text-base sm:text-lg font-heading font-extrabold text-foreground group-hover:text-primary transition-colors flex items-center gap-2">
-                    <span>{item.title}</span>
-                  </h3>
-                  {item.notes && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
-                      {item.notes}
-                    </p>
-                  )}
+                {/* Middle: Video Title on Left & Current Status in highlighted box on Right */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-1.5 sm:py-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm sm:text-base font-heading font-extrabold text-foreground group-hover:text-primary transition-colors leading-snug">
+                      {item.title}
+                    </h3>
+                    {item.notes && (
+                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1 leading-relaxed">
+                        {item.notes}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Status Badge in the exact highlighted box */}
+                  <div className="shrink-0 flex items-center">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-extrabold border transition-all ${getStatusBadgeStyle(
+                        item.status,
+                        isOverdue
+                      )}`}
+                    >
+                      <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                      <span>{STAGE_LABELS[item.status]}</span>
+                    </span>
+                  </div>
                 </div>
 
                 {/* 6-Stage Visual Stepper */}
-                <div className="pt-2">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-xl bg-muted/40 border border-border">
+                <div className="pt-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 sm:p-2.5 rounded-lg bg-muted/40 border border-border">
                     {/* Stepper Dots & Labels */}
-                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
                       {stagesList.map((st, idx) => {
                         const isCurrent = item.status === st;
                         const isPassed = currentStageIndex > idx;
@@ -632,7 +671,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                             key={st}
                             type="button"
                             onClick={() => moveContentStatus(item.id, st)}
-                            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold transition-all flex items-center gap-1 ${
                               isCurrent
                                 ? isPublicOrLive
                                   ? "bg-emerald-500 text-white shadow-xs"
@@ -645,7 +684,7 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                           >
                             <span>{idx + 1}.</span>
                             <span>{STAGE_LABELS[st].replace(" (Done)", "").replace(" (Active)", "")}</span>
-                            {isPassed && <CheckCircle2 size={11} className="text-emerald-500 ml-0.5" />}
+                            {isPassed && <CheckCircle2 size={10} className="text-emerald-500 ml-0.5" />}
                           </button>
                         );
                       })}
@@ -656,11 +695,11 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                       <button
                         type="button"
                         onClick={() => handleAdvanceStage(item)}
-                        className="px-3 py-1 rounded-lg text-xs font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 transition-all flex items-center gap-1.5 shrink-0 self-end sm:self-auto"
+                        className="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 transition-all flex items-center gap-1 shrink-0 self-end sm:self-auto"
                         title="Advance to next production stage"
                       >
                         <span>Next Stage</span>
-                        <ChevronRight size={13} />
+                        <ChevronRight size={12} />
                       </button>
                     )}
 
@@ -669,14 +708,14 @@ export const ContentManagerView: React.FC<ContentManagerViewProps> = ({
                       <button
                         type="button"
                         onClick={() => archiveContentItem(item.id, !item.isArchived)}
-                        className={`px-3 py-1 rounded-lg text-xs font-bold border transition-all flex items-center gap-1.5 shrink-0 self-end sm:self-auto ${
+                        className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border transition-all flex items-center gap-1 shrink-0 self-end sm:self-auto ${
                           item.isArchived
                             ? "bg-muted text-muted-foreground border-border hover:text-foreground"
                             : "bg-emerald-500/10 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/20"
                         }`}
                       >
-                        <Archive size={12} />
-                        <span>{item.isArchived ? "Archived ✓" : "Archive Video"}</span>
+                        <Archive size={11} />
+                        <span>{item.isArchived ? "Archived" : "Archive"}</span>
                       </button>
                     )}
                   </div>

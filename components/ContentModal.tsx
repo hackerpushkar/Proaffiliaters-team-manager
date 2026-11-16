@@ -266,7 +266,7 @@ export const ContentModal: React.FC<ContentModalProps> = ({
                 }`}
               >
                 <Video size={14} />
-                <span>📹 Organic Video</span>
+                <span>Organic Video</span>
               </button>
               <button
                 type="button"
@@ -278,7 +278,7 @@ export const ContentModal: React.FC<ContentModalProps> = ({
                 }`}
               >
                 <Target size={14} />
-                <span>🎯 Paid Ad Creative</span>
+                <span>Paid Ad Creative</span>
               </button>
             </div>
           </div>
@@ -399,7 +399,7 @@ export const ContentModal: React.FC<ContentModalProps> = ({
             </div>
             {type === "organic" && (
               <p className="text-[10px] text-amber-600 dark:text-amber-400">
-                ⚠️ Notice: If this video passes its End Deadline without reaching Public, its container will highlight in Red.
+                Notice: If this video passes its End Deadline without reaching Public, its container will highlight in Red.
               </p>
             )}
           </div>
