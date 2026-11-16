@@ -14,6 +14,7 @@
    - [Module 1: Major & Minor Tasks (Hierarchy Engine)](#module-1-major--minor-tasks-hierarchy-engine)
    - [Module 2: New Upcoming Features](#module-2-new-upcoming-features)
    - [Module 3: Fix & Updates (Bug Tracking & Patch Logs)](#module-3-fix--updates-bug-tracking--patch-logs)
+   - [Module 8: Content Manager (Organic Videos & Paid Ads Engine)](#module-8-content-manager-organic-videos--paid-ads-engine)
 5. [State Management & Data Persistence](#5-state-management--data-persistence)
 6. [Unique Port & Network Deployment](#6-unique-port--network-deployment)
 7. [Developer Guidelines & File Header/Footer Standards](#7-developer-guidelines--file-headerfooter-standards)
@@ -60,6 +61,7 @@ Team And Task Manager/
 │   ├── UpcomingFeaturesView.tsx   # Category 1: Brainstorming & voting upcoming features with 4 roadmap stats
 │   ├── FeatureDetailView.tsx      # Full-page feature research workspace
 │   ├── FixUpdatesView.tsx         # Category 3: Bug triage, severity tracking & patch changelogs
+│   ├── ContentManagerView.tsx     # Module 8: Organic Videos & Paid Ads 6-stage lifecycle engine
 │   ├── MyTasksView.tsx            # Personal task workspace with status checkboxes and due date highlights
 │   ├── TeamMembersView.tsx        # Organization directory with presence indicators and role profiles
 │   ├── TeamOverviewView.tsx       # Executive dashboard with 4 KPI stat cards and priority distribution
@@ -68,6 +70,7 @@ Team And Task Manager/
 │   ├── ProjectModal.tsx           # Create/Edit Major Project drawer
 │   ├── FeatureModal.tsx           # Create/Edit Feature drawer
 │   ├── FixModal.tsx               # Create/Edit Fix & Update drawer
+│   ├── ContentModal.tsx           # Create/Edit Organic Video & Paid Ad creative drawer
 │   ├── InviteTeammateModal.tsx    # Gmail teammate invitation drawer
 │   └── ui/                        # Reusable UI atoms (Badges, Buttons, Inputs)
 ├── lib/
@@ -197,23 +200,37 @@ Team And Task Manager/
 - **1-Click "My Tasks" Mode**: Toolbar toggle button in `Header` and `Sidebar` that filters the Linear Tree, Kanban Board, and Table Grid views down to tasks assigned directly to the logged-in employee (`t.assigneeEmail === currentUser.email`).
 - **Personalized Sprint Counters**: Top ribbon displays personalized pending counts tailored to each logged-in employee.
 
+### Module 8: Content Manager (Organic Videos & Paid Ads Engine)
+- **Purpose**: Unified workspace for planning, producing, reviewing, and publishing high-converting Organic Content Pieces (YouTube videos, Reels, Shorts) and Paid Advertising Creatives (Facebook/Google Ads).
+- **Dual Pipeline Architecture**:
+  1. **Organic Video Pipeline (6 Stages)**: `Researching` ➔ `Scripting` ➔ `Shooting` ➔ `Editing` ➔ `Review` ➔ `Public` *(Done / Published)*.
+  2. **Paid Ads Pipeline (6 Stages)**: `Researching` ➔ `Scripting` ➔ `Shooting` ➔ `Checking` ➔ `Reviews` ➔ `Live` *(Active Campaign)*.
+- **Automated Deadline Watchdog (Red Alert Container)**:
+  - If an Organic Video misses its End Deadline (`endDate < today`) without reaching `Public`, its card container triggers a high-visibility crimson alert state (`border-red-500/60`, `bg-red-500/5`, pulsing red warning badge `⚠️ Overdue by X days`).
+  - Paid Ads are strictly exempt from red container alerts to keep high-frequency creative testing calm and focused.
+- **Achieved / Completed Videos Archive**:
+  - Completed items (`status === "public"` or `status === "live"`) or archived items are organized in an **Achieved Videos** view.
+  - Active Pipeline stays clean and sprint-oriented; completed videos can be opened, inspected, and viewed live via one-click external links.
+- **Attributes**: `id`, `type` (`organic` | `ad`), `title`, `description`, `startDate`, `endDate`, `status`, `platform`, `assignee`, `assigneeEmail`, `scriptUrl`, `rawFootageUrl`, `publishedUrl`, `notes`, `isArchived`, `createdAt`, `updatedAt`, `completedAt`.
+
 ---
 
 ## 5. State Management & Full Database Persistence
 
 - **Dual-Layer Full Function Database Architecture**:
-  1. **MongoDB Master Engine**: Enterprise database integration (`lib/mongodb.ts`) running Mongoose models (`TeamMember`, `Project`, `Task`, `Feature`, `Fix`, `ProjectInvitation`) exposed via dedicated REST API endpoints:
+  1. **MongoDB Master Engine**: Enterprise database integration (`lib/mongodb.ts`) running Mongoose models (`TeamMember`, `Project`, `Task`, `Feature`, `Fix`, `ContentItem`, `ProjectInvitation`) exposed via dedicated REST API endpoints:
      - `POST /api/auth/login`: Employee credential authentication.
      - `GET / POST / PUT / DELETE /api/projects`: Full project database operations with child task cascade deletion.
      - `GET / POST / PUT / DELETE /api/tasks`: Full task deliverables database operations with priorityRank indexing.
      - `GET / POST / PUT / DELETE /api/features`: Full upcoming features database operations (lifecycle phases, research points, document attachments, team votes).
      - `GET / POST / PUT / DELETE /api/fixes`: Full bug triage and platform updates operations (severity triage, root cause notes, changelog deployment stamps).
+     - `GET / POST / PUT / DELETE /api/content`: Full Content Manager operations (organic videos, paid ads, 6-stage lifecycles, resource links).
      - `GET / POST / PUT /api/invitations`: Gmail invite dispatch and approval workflow.
      - `GET / POST / PUT / DELETE /api/team`: Admin team member provisioning.
-     - `GET / POST /api/sync`: Two-way cloud migration, batch upsert, and explicit deletion purge.
+     - `GET / POST /api/sync`: Two-way cloud migration, batch upsert, and explicit deletion purge across all collections.
   2. **Client State & Offline Engine**: React Context API (`lib/store.tsx`) paired with `localStorage` for instant zero-latency UI interactions with seamless background MongoDB syncing:
      - **Intelligent Two-Way Reconciliation**: On mount, state hydrates from `localStorage` immediately, then checks `/api/sync`. Any local items created offline are automatically synchronized to MongoDB rather than wiped out, and server updates are merged cleanly.
-     - **Immediate Deletion Guarantees**: Deletions for projects, tasks, features, and fixes immediately dispatch HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
+     - **Immediate Deletion Guarantees**: Deletions for projects, tasks, features, fixes, and content items immediately dispatch HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
 - **Storage Keys**:
   - Database Cache: `proaffiliaters_team_task_manager_v3`
   - Active Session: `proaffiliaters_session_user_v3`

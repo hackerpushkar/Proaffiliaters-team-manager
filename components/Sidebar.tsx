@@ -34,6 +34,7 @@ import {
   Plus,
   ArrowRight,
   Shield,
+  Clapperboard,
 } from "lucide-react";
 import { useTaskStore } from "@/lib/store";
 import { ActiveTab } from "@/lib/types";
@@ -90,6 +91,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: "Fix & Updates",
       icon: Wrench,
       badge: (fixes || []).filter((f) => f.status !== "deployed").length,
+    },
+    {
+      id: "content",
+      label: "Content Manager",
+      icon: Clapperboard,
+      badge: (stats.organicInFlightCount || 0) + (stats.adsActiveCount || 0),
     },
     {
       id: "tasks",

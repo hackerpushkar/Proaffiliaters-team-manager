@@ -21,6 +21,7 @@ import { FeatureModel } from "@/models/Feature";
 import { FixModel } from "@/models/Fix";
 import { TeamMemberModel } from "@/models/TeamMember";
 import { ProjectInvitationModel } from "@/models/ProjectInvitation";
+import { ContentItemModel } from "@/models/ContentItem";
 
 export const dynamic = "force-dynamic";
 
@@ -28,13 +29,14 @@ export async function GET() {
   try {
     await connectToDatabase();
 
-    const [projects, tasks, features, fixes, teamMembers, invitations] = await Promise.all([
+    const [projects, tasks, features, fixes, teamMembers, invitations, contentItems] = await Promise.all([
       ProjectModel.find({}).sort({ order: 1, createdAt: -1 }).lean(),
       TaskModel.find({}).sort({ priorityRank: 1 }).lean(),
       FeatureModel.find({}).sort({ order: 1, createdAt: -1 }).lean(),
       FixModel.find({}).sort({ createdAt: -1 }).lean(),
       TeamMemberModel.find({}).sort({ createdAt: 1 }).lean(),
       ProjectInvitationModel.find({}).sort({ createdAt: -1 }).lean(),
+      ContentItemModel.find({}).sort({ endDate: 1, createdAt: -1 }).lean(),
     ]);
 
     return NextResponse.json({
@@ -46,6 +48,7 @@ export async function GET() {
         fixes,
         teamMembers,
         invitations,
+        contentItems,
       },
     });
   } catch (error: any) {
@@ -65,7 +68,7 @@ export async function POST(req: Request) {
     await connectToDatabase();
     const body = await req.json();
 
-    const { projects, tasks, features, fixes, teamMembers, invitations, deletedIds } = body;
+    const { projects, tasks, features, fixes, teamMembers, invitations, contentItems, deletedIds } = body;
 
     // Purge any explicitly deleted items
     if (deletedIds) {
@@ -81,6 +84,9 @@ export async function POST(req: Request) {
       }
       if (Array.isArray(deletedIds.tasks) && deletedIds.tasks.length > 0) {
         await TaskModel.deleteMany({ id: { $in: deletedIds.tasks } });
+      }
+      if (Array.isArray(deletedIds.contentItems) && deletedIds.contentItems.length > 0) {
+        await ContentItemModel.deleteMany({ id: { $in: deletedIds.contentItems } });
       }
     }
 
@@ -123,6 +129,13 @@ export async function POST(req: Request) {
     if (Array.isArray(invitations)) {
       for (const inv of invitations) {
         await ProjectInvitationModel.findOneAndUpdate({ id: inv.id }, inv, { upsert: true });
+      }
+    }
+
+    // Batch upsert ContentItems
+    if (Array.isArray(contentItems)) {
+      for (const item of contentItems) {
+        await ContentItemModel.findOneAndUpdate({ id: item.id }, item, { upsert: true });
       }
     }
 

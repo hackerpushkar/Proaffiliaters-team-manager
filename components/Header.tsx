@@ -61,6 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
     projects,
     features,
     tasks,
+    contentItems,
     setActiveTab,
     setSelectedProjectId,
   } = useTaskStore();
@@ -158,8 +159,21 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
         },
       }));
 
-    return [...matchedProjects, ...matchedFeatures, ...matchedTasks].slice(0, 6);
-  }, [searchQuery, projects, features, tasks, setSelectedProjectId, setActiveTab, setSearchQuery]);
+    const matchedContent = (contentItems || [])
+      .filter((c) => c.title.toLowerCase().includes(q) || (c.notes && c.notes.toLowerCase().includes(q)))
+      .map((c) => ({
+        id: c.id,
+        title: c.title,
+        category: c.type === "organic" ? `Video • ${c.platform || "Organic"}` : `Ad • ${c.platform || "Paid Ad"}`,
+        type: "Content" as const,
+        action: () => {
+          setActiveTab("content");
+          setSearchQuery("");
+        },
+      }));
+
+    return [...matchedProjects, ...matchedFeatures, ...matchedTasks, ...matchedContent].slice(0, 6);
+  }, [searchQuery, projects, features, tasks, contentItems, setSelectedProjectId, setActiveTab, setSearchQuery]);
 
   return (
     <header className="sticky top-0 z-30 h-[76px] flex items-center justify-between px-4 sm:px-6 border-b border-border bg-card/95 backdrop-blur-md transition-colors">

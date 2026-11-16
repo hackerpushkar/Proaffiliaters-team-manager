@@ -40,6 +40,11 @@ import {
   ActiveTab,
   TaskPriority,
   TaskStatus,
+  ContentItem,
+  ContentType,
+  ContentStatus,
+  OrganicContentStatus,
+  AdContentStatus,
 } from "./types";
 import {
   initialFeatures,
@@ -48,6 +53,7 @@ import {
   initialFixes,
   initialTeamMembers,
   initialInvitations,
+  initialContentItems,
 } from "./defaultData";
 
 const STORAGE_KEY = "proaffiliaters_team_task_manager_v3";
@@ -86,6 +92,7 @@ interface TaskStoreContextType {
   tasks: ProjectTask[];
   fixes: FixUpdate[];
   teamMembers: TeamMember[];
+  contentItems: ContentItem[];
 
   // Features Pipeline Actions
   addFeature: (feature: Omit<UpcomingFeature, "id" | "createdAt" | "votes">) => void;
@@ -122,6 +129,13 @@ interface TaskStoreContextType {
   updateFix: (id: string, updates: Partial<FixUpdate>) => void;
   deleteFix: (id: string) => void;
 
+  // Content Manager Actions (Organic Videos & Paid Ads)
+  addContentItem: (item: Omit<ContentItem, "id" | "createdAt">) => ContentItem;
+  updateContentItem: (id: string, updates: Partial<ContentItem>) => void;
+  deleteContentItem: (id: string) => void;
+  moveContentStatus: (id: string, newStatus: ContentStatus) => void;
+  archiveContentItem: (id: string, isArchived: boolean) => void;
+
   // Team Member Actions
   addTeamMember: (member: Omit<TeamMember, "id" | "joinedAt">) => TeamMember;
   updateTeamMember: (id: string, updates: Partial<TeamMember>) => void;
@@ -142,6 +156,10 @@ interface TaskStoreContextType {
     criticalFixesCount: number;
     completedTasksCount: number;
     pendingInvitesCount: number;
+    organicInFlightCount: number;
+    adsActiveCount: number;
+    contentOverdueCount: number;
+    achievedContentCount: number;
   };
 }
 
@@ -206,6 +224,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const d = getStoredData();
     return d && Array.isArray(d.invitations) ? d.invitations : initialInvitations;
   });
+  const [contentItems, setContentItems] = useState<ContentItem[]>(() => {
+    const d = getStoredData();
+    return d && Array.isArray(d.contentItems) ? d.contentItems : initialContentItems;
+  });
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Hydrate session and local database on mount
@@ -232,6 +254,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
           if (localData.fixes && Array.isArray(localData.fixes)) setFixes(localData.fixes);
           if (localData.teamMembers && Array.isArray(localData.teamMembers)) setTeamMembers(localData.teamMembers);
           if (localData.invitations && Array.isArray(localData.invitations)) setInvitations(localData.invitations);
+          if (localData.contentItems && Array.isArray(localData.contentItems)) setContentItems(localData.contentItems);
         } catch (e) {
           console.warn("Failed to parse local stored data:", e);
         }
@@ -364,6 +387,36 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
               }
             }
 
+            // Reconcile Content Items (Organic Videos & Paid Ads):
+            if (Array.isArray(db.contentItems)) {
+              if (db.contentItems.length > 0) {
+                if (localData?.contentItems && Array.isArray(localData.contentItems)) {
+                  const dbIds = new Set(db.contentItems.map((c: any) => c.id));
+                  const unsynced = localData.contentItems.filter((c: any) => !dbIds.has(c.id));
+                  if (unsynced.length > 0) {
+                    unsynced.forEach((c: any) => {
+                      fetch("/api/content", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(c),
+                      }).catch(() => {});
+                    });
+                    setContentItems([...unsynced, ...db.contentItems]);
+                  } else {
+                    setContentItems(db.contentItems);
+                  }
+                } else {
+                  setContentItems(db.contentItems);
+                }
+              } else if (localData?.contentItems && localData.contentItems.length > 0) {
+                fetch("/api/sync", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ contentItems: localData.contentItems }),
+                }).catch(() => {});
+              }
+            }
+
             if (db.teamMembers && db.teamMembers.length > 0) setTeamMembers(db.teamMembers);
             if (db.invitations && db.invitations.length > 0) setInvitations(db.invitations);
           }
@@ -389,13 +442,14 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         fixes,
         teamMembers,
         invitations,
+        contentItems,
         savedAt: new Date().toISOString(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch (e) {
       console.error("Failed to persist data to localStorage:", e);
     }
-  }, [features, projects, tasks, fixes, teamMembers, invitations, isLoaded]);
+  }, [features, projects, tasks, fixes, teamMembers, invitations, contentItems, isLoaded]);
 
   // AUTHENTICATION ACTIONS
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
@@ -1277,6 +1331,71 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     }).catch(() => {});
   };
 
+  // CONTENT MANAGER ACTIONS (Organic Videos & Paid Ads)
+  const addContentItem = (itemData: Omit<ContentItem, "id" | "createdAt">): ContentItem => {
+    const today = new Date().toISOString().split("T")[0];
+    const newItem: ContentItem = {
+      ...itemData,
+      id: `cnt-${Date.now().toString(36)}`,
+      createdAt: today,
+      updatedAt: today,
+      isArchived: itemData.isArchived || false,
+    };
+
+    setContentItems((prev) => [newItem, ...prev]);
+
+    // Persist immediately to MongoDB
+    fetch("/api/content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newItem),
+    }).catch(() => {});
+
+    return newItem;
+  };
+
+  const updateContentItem = (id: string, updates: Partial<ContentItem>) => {
+    const today = new Date().toISOString().split("T")[0];
+    let payloadToSend: any = { id, ...updates, updatedAt: today };
+
+    // Auto-stamp completedAt when moved to public or live
+    if (
+      (updates.status === "public" || updates.status === "live") &&
+      !updates.completedAt
+    ) {
+      payloadToSend.completedAt = today;
+      updates.completedAt = today;
+    }
+
+    setContentItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates, updatedAt: today } : item))
+    );
+
+    // Persist immediately to MongoDB
+    fetch("/api/content", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payloadToSend),
+    }).catch(() => {});
+  };
+
+  const deleteContentItem = (id: string) => {
+    setContentItems((prev) => prev.filter((item) => item.id !== id));
+
+    // Permanently purge from MongoDB
+    fetch(`/api/content?id=${id}`, {
+      method: "DELETE",
+    }).catch(() => {});
+  };
+
+  const moveContentStatus = (id: string, newStatus: ContentStatus) => {
+    updateContentItem(id, { status: newStatus });
+  };
+
+  const archiveContentItem = (id: string, isArchived: boolean) => {
+    updateContentItem(id, { isArchived });
+  };
+
   // TEAM MEMBER ACTIONS
   const addTeamMember = (memberData: Omit<TeamMember, "id" | "joinedAt">): TeamMember => {
     const newMember: TeamMember = {
@@ -1324,6 +1443,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       fixes,
       teamMembers,
       invitations,
+      contentItems,
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
     const downloadAnchor = document.createElement("a");
@@ -1346,6 +1466,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       if (data.fixes && Array.isArray(data.fixes)) setFixes(data.fixes);
       if (data.teamMembers && Array.isArray(data.teamMembers)) setTeamMembers(data.teamMembers);
       if (data.invitations && Array.isArray(data.invitations)) setInvitations(data.invitations);
+      if (data.contentItems && Array.isArray(data.contentItems)) setContentItems(data.contentItems);
       return true;
     } catch (e) {
       console.error("Failed to import JSON data:", e);
@@ -1361,6 +1482,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setFixes(initialFixes);
       setTeamMembers(initialTeamMembers);
       setInvitations(initialInvitations);
+      setContentItems(initialContentItems);
       setSelectedProjectId("proj-prowasp");
       setCurrentUser(initialTeamMembers[0]);
       localStorage.removeItem(STORAGE_KEY);
@@ -1397,6 +1519,20 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         ).length
       : 0;
 
+    const todayStr = new Date().toISOString().split("T")[0];
+    const organicInFlightCount = contentItems.filter(
+      (c) => c.type === "organic" && c.status !== "public" && !c.isArchived
+    ).length;
+    const adsActiveCount = contentItems.filter(
+      (c) => c.type === "ad" && c.status !== "live" && !c.isArchived
+    ).length;
+    const contentOverdueCount = contentItems.filter(
+      (c) => c.type === "organic" && c.status !== "public" && !c.isArchived && c.endDate < todayStr
+    ).length;
+    const achievedContentCount = contentItems.filter(
+      (c) => c.isArchived || c.status === "public" || c.status === "live"
+    ).length;
+
     return {
       totalFeatures,
       totalProjects,
@@ -1406,8 +1542,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       criticalFixesCount,
       completedTasksCount,
       pendingInvitesCount,
+      organicInFlightCount,
+      adsActiveCount,
+      contentOverdueCount,
+      achievedContentCount,
     };
-  }, [features, projects, tasks, fixes, invitations, currentUser]);
+  }, [features, projects, tasks, fixes, invitations, contentItems, currentUser]);
 
   return (
     <TaskStoreContext.Provider
@@ -1435,6 +1575,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         tasks,
         fixes,
         teamMembers,
+        contentItems,
         addFeature,
         updateFeature,
         deleteFeature,
@@ -1462,6 +1603,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         addFix,
         updateFix,
         deleteFix,
+        addContentItem,
+        updateContentItem,
+        deleteContentItem,
+        moveContentStatus,
+        archiveContentItem,
         addTeamMember,
         updateTeamMember,
         deleteTeamMember,
@@ -1491,10 +1637,11 @@ export function useTaskStore() {
  * - Workflow: Mounts once at root, hydrates instantly from localStorage and
  *   intelligently reconciles with MongoDB via /api/sync.
  * - Real-Time API Sync: All CRUD operations across Projects (/api/projects),
- *   Tasks (/api/tasks), Features (/api/features), and Fixes (/api/fixes)
- *   are dispatched immediately to MongoDB with optimistic UI updates.
+ *   Tasks (/api/tasks), Features (/api/features), Fixes (/api/fixes),
+ *   and Content Items (/api/content) are dispatched immediately to MongoDB.
  * - Deletion Guarantees: Deletions dispatch real-time HTTP DELETE queries to
  *   purge records from MongoDB, preventing ghost resurrection on reload.
+ * - Content Manager: Dual Organic & Ads pipeline lifecycle with deadline tracking.
  * - Authentication: Stores session in localStorage; supports fallback when offline.
  * - Invitations: Updates project.teamMemberEmails upon invite acceptance.
  * ============================================================================

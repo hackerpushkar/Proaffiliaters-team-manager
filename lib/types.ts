@@ -160,7 +160,74 @@ export interface ProjectInvitation {
   respondedAt?: string;
 }
 
-export type ActiveTab = "projects" | "features" | "fixes" | "overview" | "tasks" | "members";
+// ============================================================================
+// CONTENT MANAGER TYPES & INTERFACES (Organic Videos & Paid Ads)
+// ============================================================================
+
+export type ContentType = "organic" | "ad";
+
+export type OrganicContentStatus =
+  | "researching"
+  | "scripting"
+  | "shooting"
+  | "editing"
+  | "review"
+  | "public";
+
+export type AdContentStatus =
+  | "researching"
+  | "scripting"
+  | "shooting"
+  | "checking"
+  | "reviews"
+  | "live";
+
+export type ContentStatus = OrganicContentStatus | AdContentStatus;
+
+export type ContentPlatform =
+  | "YouTube"
+  | "Instagram Reels"
+  | "YouTube Shorts"
+  | "Telegram"
+  | "Facebook Ads"
+  | "Google Ads"
+  | "Twitter/X"
+  | "Website"
+  | "Other";
+
+export interface ContentItem {
+  id: string;
+  type: ContentType;
+  title: string;
+  description?: string;
+  startDate: string;
+  endDate: string;
+  status: ContentStatus;
+  platform?: ContentPlatform;
+  assignee?: {
+    name: string;
+    avatar: string;
+    role?: string;
+  };
+  assigneeEmail?: string;
+  scriptUrl?: string;
+  rawFootageUrl?: string;
+  publishedUrl?: string;
+  notes?: string;
+  isArchived?: boolean;
+  createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
+}
+
+export type ActiveTab =
+  | "projects"
+  | "features"
+  | "fixes"
+  | "overview"
+  | "tasks"
+  | "members"
+  | "content";
 
 /**
  * ============================================================================

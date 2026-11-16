@@ -32,12 +32,14 @@ import { FixUpdatesView } from "@/components/FixUpdatesView";
 import { TeamOverviewView } from "@/components/TeamOverviewView";
 import { MyTasksView } from "@/components/MyTasksView";
 import { TeamMembersView } from "@/components/TeamMembersView";
+import { ContentManagerView } from "@/components/ContentManagerView";
 import { TaskModal } from "@/components/TaskModal";
 import { ProjectModal } from "@/components/ProjectModal";
 import { FeatureModal } from "@/components/FeatureModal";
 import { FixModal } from "@/components/FixModal";
+import { ContentModal } from "@/components/ContentModal";
 import { useTaskStore } from "@/lib/store";
-import { ProjectTask, OngoingProject, UpcomingFeature, FixUpdate } from "@/lib/types";
+import { ProjectTask, OngoingProject, UpcomingFeature, FixUpdate, ContentItem, ContentType } from "@/lib/types";
 import LoginPage from "./login/page";
 
 export default function HomePage() {
@@ -59,6 +61,10 @@ export default function HomePage() {
   const [fixModalOpen, setFixModalOpen] = useState(false);
   const [fixToEdit, setFixToEdit] = useState<FixUpdate | null>(null);
   const [fixModalInitialMode, setFixModalInitialMode] = useState<"fix" | "update">("fix");
+
+  const [contentModalOpen, setContentModalOpen] = useState(false);
+  const [contentToEdit, setContentToEdit] = useState<ContentItem | null>(null);
+  const [contentModalInitialType, setContentModalInitialType] = useState<ContentType>("organic");
 
   useEffect(() => {
     setMounted(true);
@@ -140,6 +146,19 @@ export default function HomePage() {
     setFixModalOpen(true);
   };
 
+  // Content Modal Handlers
+  const handleOpenAddContent = (contentType?: ContentType) => {
+    setContentToEdit(null);
+    setContentModalInitialType(contentType || "organic");
+    setContentModalOpen(true);
+  };
+
+  const handleOpenEditContent = (item: ContentItem) => {
+    setContentToEdit(item);
+    setContentModalInitialType(item.type);
+    setContentModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Top Header */}
@@ -176,6 +195,13 @@ export default function HomePage() {
               onOpenAddUpdateModal={handleOpenAddUpdate}
               onOpenAddModal={handleOpenAddFix}
               onOpenEditModal={handleOpenEditFix}
+            />
+          )}
+
+          {activeTab === "content" && (
+            <ContentManagerView
+              onOpenAddModal={handleOpenAddContent}
+              onOpenEditModal={handleOpenEditContent}
             />
           )}
 
@@ -222,6 +248,13 @@ export default function HomePage() {
         onClose={() => setFixModalOpen(false)}
         fixToEdit={fixToEdit}
         initialMode={fixModalInitialMode}
+      />
+
+      <ContentModal
+        isOpen={contentModalOpen}
+        onClose={() => setContentModalOpen(false)}
+        contentToEdit={contentToEdit}
+        initialType={contentModalInitialType}
       />
     </div>
   );
