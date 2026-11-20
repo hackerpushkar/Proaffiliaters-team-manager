@@ -878,11 +878,8 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    // 3. Update store state: auto-hold other active projects so only 1 active project remains
-    setProjects((prev) => [
-      newProject,
-      ...prev.map((p) => (p.status === "active" ? { ...p, status: "paused" as ProjectStatus } : p)),
-    ]);
+    // 3. Update store state: add new project without modifying existing project statuses
+    setProjects((prev) => [newProject, ...prev]);
     setTasks((prev) => [...newTasks, ...prev]);
     setFeatures((prev) =>
       prev.map((f) =>
@@ -1059,13 +1056,8 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       createdAt: new Date().toISOString().split("T")[0],
     };
 
-    // Auto-Hold Rule: If new project is active, move all other active projects to on hold (paused)
-    setProjects((prev) => {
-      const updatedPrev = newProj.status === "active"
-        ? prev.map((p) => (p.status === "active" ? { ...p, status: "paused" as ProjectStatus } : p))
-        : prev;
-      return [newProj, ...updatedPrev];
-    });
+    // Independent Project Creation: Add new project without altering other projects' statuses
+    setProjects((prev) => [newProj, ...prev]);
     setSelectedProjectId(newProj.id);
 
     // Save to MongoDB in background
@@ -1079,17 +1071,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateProject = (id: string, updates: Partial<OngoingProject>) => {
-    // Auto-Hold Rule: If this project becomes active, move any other active projects to on hold (paused)
+    // Independent Project Status Control: Only update targeted project, preserving concurrent active projects
     setProjects((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          return { ...p, ...updates };
-        }
-        if (updates.status === "active" && p.status === "active") {
-          return { ...p, status: "paused" as ProjectStatus };
-        }
-        return p;
-      })
+      prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
     );
 
     fetch("/api/projects", {

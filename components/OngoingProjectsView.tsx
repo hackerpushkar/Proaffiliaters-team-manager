@@ -1427,7 +1427,7 @@ export const OngoingProjectsView: React.FC<OngoingProjectsViewProps> = ({
  * - Workflow: Two-tier architecture with clean Landing Hub cards & full workspace.
  * - Task Slider: Interactive right slide-over drawer for viewing/editing tasks & subtasks.
  * - 9-Dot Task Reorder: Vertical drag-and-drop on tasks with priority rank re-sequencing.
- * - Project Hold: Auto-hold rule enforces single active project with dedicated filter tabs.
+ * - Project Hold: Independent status control per project; multiple concurrent active projects supported.
  * - Navigation: setSelectedProjectId(null) returns to Hub; continue button opens workspace.
  * - Views: Tree, Kanban, and Table modes isolated per project workspace.
  * ============================================================================
