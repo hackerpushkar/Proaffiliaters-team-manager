@@ -16,6 +16,7 @@ import mongoose, { Schema, Document, Model } from "mongoose";
 export interface ITaskDocument extends Document {
   id: string;
   projectId: string;
+  isPersonal?: boolean;
   name: string;
   description: string;
   priority: string;
@@ -46,7 +47,8 @@ const SubtaskSchema = new Schema(
 const TaskSchema = new Schema<ITaskDocument>(
   {
     id: { type: String, required: true, unique: true, index: true },
-    projectId: { type: String, required: true, index: true },
+    projectId: { type: String, default: "personal", index: true },
+    isPersonal: { type: Boolean, default: false, index: true },
     name: { type: String, required: true },
     description: { type: String, default: "" },
     priority: { type: String, enum: ["P0", "P1", "P2", "P3"], default: "P1", index: true },

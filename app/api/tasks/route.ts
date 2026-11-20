@@ -49,9 +49,17 @@ export async function POST(req: Request) {
     await connectToDatabase();
     const body = await req.json();
 
-    if (!body.name || !body.projectId) {
+    if (!body.name) {
       return NextResponse.json(
-        { success: false, message: "Task name and projectId are required" },
+        { success: false, message: "Task name is required" },
+        { status: 400 }
+      );
+    }
+
+    const projectId = body.projectId || (body.isPersonal ? "personal" : "");
+    if (!projectId) {
+      return NextResponse.json(
+        { success: false, message: "Task projectId is required" },
         { status: 400 }
       );
     }
@@ -59,7 +67,8 @@ export async function POST(req: Request) {
     const taskId = body.id || `task-${Date.now()}`;
     const newTask = await TaskModel.create({
       id: taskId,
-      projectId: body.projectId,
+      projectId,
+      isPersonal: Boolean(body.isPersonal),
       name: body.name,
       description: body.description || "",
       priority: body.priority || "P1",

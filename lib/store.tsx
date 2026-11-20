@@ -1710,14 +1710,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const completedTasksCount = tasks.filter((t) => t.status === "done").length;
 
     const userEmail = currentUser?.email?.toLowerCase();
-    const myTasksCount = userEmail
-      ? tasks.filter(
-          (t) =>
-            (t.assigneeEmail?.toLowerCase() === userEmail ||
-              t.assignee?.name?.toLowerCase().includes(currentUser?.name?.toLowerCase() || "")) &&
-            t.status !== "done"
-        ).length
-      : 0;
+    const myTasksCount = tasks.filter(
+      (t) => (t.isPersonal === true || t.projectId === "personal") && t.status !== "done"
+    ).length;
 
     const pendingInvitesCount = userEmail
       ? invitations.filter(

@@ -197,9 +197,11 @@ Team And Task Manager/
   - Recipient can click **`✓ Approve & Join`** or **`✕ Decline`**.
   - Upon approval, the recipient's email is appended to the project's `teamMemberEmails`, officially joining them to the initiative and granting task assignment access.
 
-### Module 7: Individual Member Deliverables ("My Tasks" Mode)
-- **1-Click "My Tasks" Mode**: Toolbar toggle button in `Header` and `Sidebar` that filters the Linear Tree, Kanban Board, and Table Grid views down to tasks assigned directly to the logged-in employee (`t.assigneeEmail === currentUser.email`).
-- **Personalized Sprint Counters**: Top ribbon displays personalized pending counts tailored to each logged-in employee.
+### Module 7: Personal Deliverables & To-Do Workspace ("My Tasks")
+- **Personal Workspace Isolation**: `My Tasks` is strictly dedicated to personal to-dos and action items manually added by the user. Ongoing Project tasks are excluded from this workspace to keep personal work clutter-free.
+- **Manual Personal Task Creation**: 1-click `+ New task` trigger opening `PersonalTaskModal.tsx` to set Title, Priority (`P0 Urgent`, `P1 High`, `P2 Normal`, `P3 Low`), Due Date presets (*Today*, *Tomorrow*, *+1 Week*), Notes, and Subtask checklists without requiring project selection.
+- **Interactive Management**: Quick circular completion toggle (strikethrough when done), due today / overdue highlighting, and inline edit & delete actions.
+- **Attributes**: Tasks tagged with `isPersonal: true` and `projectId: "personal"`, persisting through `app/api/tasks` and LocalStorage.
 
 ### Module 8: Content Manager (Organic Videos & Paid Ads Engine)
 - **Purpose**: Unified workspace for planning, producing, reviewing, and publishing high-converting Organic Content Pieces (YouTube videos, Reels, Shorts) and Paid Advertising Creatives (Facebook/Google Ads).

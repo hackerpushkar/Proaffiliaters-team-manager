@@ -90,7 +90,8 @@ export interface SubtaskItem {
 
 export interface ProjectTask {
   id: string;
-  projectId: string; // foreign key to OngoingProject
+  projectId: string; // foreign key to OngoingProject (or "personal" for My Tasks)
+  isPersonal?: boolean;
   name: string;
   description: string;
   priority: TaskPriority;
