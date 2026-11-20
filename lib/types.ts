@@ -244,6 +244,52 @@ export interface ContentItem {
   completedAt?: string;
 }
 
+export type IdeaCategory =
+  | "Growth"
+  | "Product"
+  | "Automation"
+  | "Marketing"
+  | "UI/UX"
+  | "Internal Tool"
+  | "Other";
+
+export type IdeaStatus =
+  | "brainstorming"
+  | "under_review"
+  | "planned"
+  | "converted"
+  | "archived";
+
+export interface IdeaRemark {
+  id: string;
+  authorName: string;
+  authorAvatar: string;
+  authorEmail?: string;
+  text: string;
+  createdAt: string;
+}
+
+export interface Idea {
+  id: string;
+  title: string;
+  description: string;
+  category: IdeaCategory;
+  status: IdeaStatus;
+  initialRemark?: string;
+  author: {
+    name: string;
+    avatar: string;
+    email?: string;
+    role?: string;
+  };
+  upvotes: string[];
+  remarks: IdeaRemark[];
+  tags?: string[];
+  convertedFeatureId?: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 export type ActiveTab =
   | "projects"
   | "features"
@@ -251,7 +297,8 @@ export type ActiveTab =
   | "overview"
   | "tasks"
   | "members"
-  | "content";
+  | "content"
+  | "ideas";
 
 /**
  * ============================================================================

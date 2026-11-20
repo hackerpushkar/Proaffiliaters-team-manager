@@ -22,6 +22,7 @@ import { FixModel } from "@/models/Fix";
 import { TeamMemberModel } from "@/models/TeamMember";
 import { ProjectInvitationModel } from "@/models/ProjectInvitation";
 import { ContentItemModel } from "@/models/ContentItem";
+import { IdeaModel } from "@/models/Idea";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +30,7 @@ export async function GET() {
   try {
     await connectToDatabase();
 
-    const [projects, tasks, features, fixes, teamMembers, invitations, contentItems] = await Promise.all([
+    const [projects, tasks, features, fixes, teamMembers, invitations, contentItems, ideas] = await Promise.all([
       ProjectModel.find({}).sort({ order: 1, createdAt: -1 }).lean(),
       TaskModel.find({}).sort({ priorityRank: 1 }).lean(),
       FeatureModel.find({}).sort({ order: 1, createdAt: -1 }).lean(),
@@ -37,6 +38,7 @@ export async function GET() {
       TeamMemberModel.find({}).sort({ createdAt: 1 }).lean(),
       ProjectInvitationModel.find({}).sort({ createdAt: -1 }).lean(),
       ContentItemModel.find({}).sort({ endDate: 1, createdAt: -1 }).lean(),
+      IdeaModel.find({}).sort({ createdAt: -1 }).lean(),
     ]);
 
     return NextResponse.json({
@@ -49,6 +51,7 @@ export async function GET() {
         teamMembers,
         invitations,
         contentItems,
+        ideas,
       },
     });
   } catch (error: any) {
@@ -68,7 +71,7 @@ export async function POST(req: Request) {
     await connectToDatabase();
     const body = await req.json();
 
-    const { projects, tasks, features, fixes, teamMembers, invitations, contentItems, deletedIds } = body;
+    const { projects, tasks, features, fixes, teamMembers, invitations, contentItems, ideas, deletedIds } = body;
 
     // Purge any explicitly deleted items
     if (deletedIds) {
@@ -87,6 +90,9 @@ export async function POST(req: Request) {
       }
       if (Array.isArray(deletedIds.contentItems) && deletedIds.contentItems.length > 0) {
         await ContentItemModel.deleteMany({ id: { $in: deletedIds.contentItems } });
+      }
+      if (Array.isArray(deletedIds.ideas) && deletedIds.ideas.length > 0) {
+        await IdeaModel.deleteMany({ id: { $in: deletedIds.ideas } });
       }
     }
 
@@ -136,6 +142,13 @@ export async function POST(req: Request) {
     if (Array.isArray(contentItems)) {
       for (const item of contentItems) {
         await ContentItemModel.findOneAndUpdate({ id: item.id }, item, { upsert: true });
+      }
+    }
+
+    // Batch upsert Ideas
+    if (Array.isArray(ideas)) {
+      for (const idea of ideas) {
+        await IdeaModel.findOneAndUpdate({ id: idea.id }, idea, { upsert: true });
       }
     }
 

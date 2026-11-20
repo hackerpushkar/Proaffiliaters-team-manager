@@ -218,7 +218,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             value={searchQuery}
             onFocus={() => setSearchFocused(true)}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search features, projects, tasks, fixes..."
+            placeholder="Search features, projects, tasks, ideas, fixes..."
             className="w-full h-[42px] pl-11 pr-10 text-xs rounded-xl bg-[#f8f9fc] dark:bg-[#17203b] border border-border text-foreground placeholder:text-muted-foreground focus:outline-none focus:bg-card focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
           />
           {searchQuery && (

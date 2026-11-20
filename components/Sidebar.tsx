@@ -105,6 +105,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       badge: myTasksCount || 5,
     },
     {
+      id: "ideas",
+      label: "Idea Playground",
+      icon: Lightbulb,
+      badge: stats.totalIdeasCount || 0,
+    },
+    {
       id: "members",
       label: "Team Members",
       icon: Users,

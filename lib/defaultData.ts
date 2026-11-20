@@ -18,7 +18,7 @@
  * ============================================================================
  */
 
-import { UpcomingFeature, OngoingProject, ProjectTask, FixUpdate, TeamMember, ProjectInvitation, ContentItem } from "./types";
+import { UpcomingFeature, OngoingProject, ProjectTask, FixUpdate, TeamMember, ProjectInvitation, ContentItem, Idea } from "./types";
 
 /**
  * The single primary Founder & Super Admin account.
@@ -70,6 +70,11 @@ export const initialInvitations: ProjectInvitation[] = [];
  * 100% Clean Slate: No dummy/sample content items.
  */
 export const initialContentItems: ContentItem[] = [];
+
+/**
+ * 100% Clean Slate: No dummy/sample ideas.
+ */
+export const initialIdeas: Idea[] = [];
 
 /**
  * ============================================================================

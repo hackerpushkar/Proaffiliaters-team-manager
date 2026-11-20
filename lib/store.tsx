@@ -45,6 +45,10 @@ import {
   ContentStatus,
   OrganicContentStatus,
   AdContentStatus,
+  Idea,
+  IdeaRemark,
+  IdeaCategory,
+  IdeaStatus,
 } from "./types";
 import {
   initialFeatures,
@@ -54,6 +58,7 @@ import {
   initialTeamMembers,
   initialInvitations,
   initialContentItems,
+  initialIdeas,
 } from "./defaultData";
 
 const STORAGE_KEY = "proaffiliaters_team_task_manager_v3";
@@ -93,6 +98,7 @@ interface TaskStoreContextType {
   fixes: FixUpdate[];
   teamMembers: TeamMember[];
   contentItems: ContentItem[];
+  ideas: Idea[];
 
   // Features Pipeline Actions
   addFeature: (feature: Omit<UpcomingFeature, "id" | "createdAt" | "votes">) => void;
@@ -136,6 +142,14 @@ interface TaskStoreContextType {
   moveContentStatus: (id: string, newStatus: ContentStatus) => void;
   archiveContentItem: (id: string, isArchived: boolean) => void;
 
+  // Idea Playground Actions
+  addIdea: (idea: Omit<Idea, "id" | "createdAt" | "upvotes" | "remarks"> & { remarks?: IdeaRemark[] }) => Idea;
+  updateIdea: (id: string, updates: Partial<Idea>) => void;
+  deleteIdea: (id: string) => void;
+  upvoteIdea: (id: string) => void;
+  addIdeaRemark: (id: string, text: string) => void;
+  convertIdeaToFeature: (id: string) => UpcomingFeature | null;
+
   // Team Member Actions
   addTeamMember: (member: Omit<TeamMember, "id" | "joinedAt">) => TeamMember;
   updateTeamMember: (id: string, updates: Partial<TeamMember>) => void;
@@ -160,6 +174,8 @@ interface TaskStoreContextType {
     adsActiveCount: number;
     contentOverdueCount: number;
     achievedContentCount: number;
+    totalIdeasCount: number;
+    brainstormingIdeasCount: number;
   };
 }
 
@@ -228,6 +244,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     const d = getStoredData();
     return d && Array.isArray(d.contentItems) ? d.contentItems : initialContentItems;
   });
+  const [ideas, setIdeas] = useState<Idea[]>(() => {
+    const d = getStoredData();
+    return d && Array.isArray(d.ideas) ? d.ideas : initialIdeas;
+  });
   const [isLoaded, setIsLoaded] = useState(false);
 
   // Hydrate session and local database on mount
@@ -255,6 +275,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
           if (localData.teamMembers && Array.isArray(localData.teamMembers)) setTeamMembers(localData.teamMembers);
           if (localData.invitations && Array.isArray(localData.invitations)) setInvitations(localData.invitations);
           if (localData.contentItems && Array.isArray(localData.contentItems)) setContentItems(localData.contentItems);
+          if (localData.ideas && Array.isArray(localData.ideas)) setIdeas(localData.ideas);
         } catch (e) {
           console.warn("Failed to parse local stored data:", e);
         }
@@ -417,6 +438,36 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
               }
             }
 
+            // Reconcile Ideas (Idea Playground):
+            if (Array.isArray(db.ideas)) {
+              if (db.ideas.length > 0) {
+                if (localData?.ideas && Array.isArray(localData.ideas)) {
+                  const dbIds = new Set(db.ideas.map((i: any) => i.id));
+                  const unsynced = localData.ideas.filter((i: any) => !dbIds.has(i.id));
+                  if (unsynced.length > 0) {
+                    unsynced.forEach((i: any) => {
+                      fetch("/api/ideas", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(i),
+                      }).catch(() => {});
+                    });
+                    setIdeas([...unsynced, ...db.ideas]);
+                  } else {
+                    setIdeas(db.ideas);
+                  }
+                } else {
+                  setIdeas(db.ideas);
+                }
+              } else if (localData?.ideas && localData.ideas.length > 0) {
+                fetch("/api/sync", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ ideas: localData.ideas }),
+                }).catch(() => {});
+              }
+            }
+
             if (db.teamMembers && db.teamMembers.length > 0) setTeamMembers(db.teamMembers);
             if (db.invitations && db.invitations.length > 0) setInvitations(db.invitations);
           }
@@ -443,13 +494,14 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         teamMembers,
         invitations,
         contentItems,
+        ideas,
         savedAt: new Date().toISOString(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
     } catch (e) {
       console.error("Failed to persist data to localStorage:", e);
     }
-  }, [features, projects, tasks, fixes, teamMembers, invitations, contentItems, isLoaded]);
+  }, [features, projects, tasks, fixes, teamMembers, invitations, contentItems, ideas, isLoaded]);
 
   // AUTHENTICATION ACTIONS
   const login = async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
@@ -1396,6 +1448,157 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
     updateContentItem(id, { isArchived });
   };
 
+  // IDEA PLAYGROUND ACTIONS
+  const addIdea = (
+    ideaData: Omit<Idea, "id" | "createdAt" | "upvotes" | "remarks"> & { remarks?: IdeaRemark[] }
+  ): Idea => {
+    const today = new Date().toISOString().split("T")[0];
+    const newId = `idea-${Date.now().toString(36)}`;
+
+    const remarksList: IdeaRemark[] = Array.isArray(ideaData.remarks) ? [...ideaData.remarks] : [];
+    if (ideaData.initialRemark && ideaData.initialRemark.trim() && remarksList.length === 0) {
+      remarksList.push({
+        id: `rem-init-${Date.now().toString(36)}`,
+        authorName: ideaData.author?.name || "Author Note",
+        authorAvatar: ideaData.author?.avatar || "/founder.jpg",
+        authorEmail: ideaData.author?.email || "",
+        text: ideaData.initialRemark.trim(),
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    const newIdea: Idea = {
+      ...ideaData,
+      id: newId,
+      upvotes: [],
+      remarks: remarksList,
+      createdAt: today,
+      updatedAt: today,
+    };
+
+    setIdeas((prev) => [newIdea, ...prev]);
+
+    fetch("/api/ideas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newIdea),
+    }).catch(() => {});
+
+    return newIdea;
+  };
+
+  const updateIdea = (id: string, updates: Partial<Idea>) => {
+    const today = new Date().toISOString().split("T")[0];
+    const payloadToSend = { id, ...updates, updatedAt: today };
+
+    setIdeas((prev) =>
+      prev.map((idea) => (idea.id === id ? { ...idea, ...updates, updatedAt: today } : idea))
+    );
+
+    fetch("/api/ideas", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payloadToSend),
+    }).catch(() => {});
+  };
+
+  const deleteIdea = (id: string) => {
+    setIdeas((prev) => prev.filter((idea) => idea.id !== id));
+
+    fetch(`/api/ideas?id=${id}`, {
+      method: "DELETE",
+    }).catch(() => {});
+  };
+
+  const upvoteIdea = (id: string) => {
+    const userEmail = currentUser?.email || "pushkar@proaffiliaters.com";
+
+    setIdeas((prev) =>
+      prev.map((idea) => {
+        if (idea.id !== id) return idea;
+        const hasUpvoted = idea.upvotes.includes(userEmail);
+        const newUpvotes = hasUpvoted
+          ? idea.upvotes.filter((e) => e !== userEmail)
+          : [...idea.upvotes, userEmail];
+        return { ...idea, upvotes: newUpvotes };
+      })
+    );
+
+    fetch("/api/ideas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "upvote", ideaId: id, userEmail }),
+    }).catch(() => {});
+  };
+
+  const addIdeaRemark = (id: string, text: string) => {
+    if (!text || !text.trim()) return;
+
+    const newRemark: IdeaRemark = {
+      id: `rem-${Date.now().toString(36)}`,
+      authorName: currentUser?.name || "Team Member",
+      authorAvatar: currentUser?.avatar || "/founder.jpg",
+      authorEmail: currentUser?.email || "",
+      text: text.trim(),
+      createdAt: new Date().toISOString(),
+    };
+
+    setIdeas((prev) =>
+      prev.map((idea) => {
+        if (idea.id !== id) return idea;
+        return {
+          ...idea,
+          remarks: [...(idea.remarks || []), newRemark],
+          updatedAt: new Date().toISOString().split("T")[0],
+        };
+      })
+    );
+
+    fetch("/api/ideas", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "remark", ideaId: id, remark: newRemark }),
+    }).catch(() => {});
+  };
+
+  const convertIdeaToFeature = (id: string): UpcomingFeature | null => {
+    const idea = ideas.find((i) => i.id === id);
+    if (!idea) return null;
+
+    const newFeatureId = `feat-${Date.now().toString(36)}`;
+    const today = new Date().toISOString().split("T")[0];
+
+    const newFeature: UpcomingFeature = {
+      id: newFeatureId,
+      name: idea.title,
+      description: idea.description,
+      targetTimeline: "Q1 2027",
+      priority: "high",
+      status: "ready_to_go",
+      author: idea.author?.name || "Pushkar (Founder)",
+      votes: idea.upvotes.length || 1,
+      tags: idea.tags && idea.tags.length > 0 ? idea.tags : [idea.category.toLowerCase()],
+      points: idea.remarks.map((r, idx) => ({
+        id: `pt-${idx}-${Date.now().toString(36)}`,
+        title: `${r.authorName}: ${r.text}`,
+        completed: false,
+      })),
+      documents: [],
+      createdAt: today,
+    };
+
+    setFeatures((prev) => [newFeature, ...prev]);
+    fetch("/api/features", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newFeature),
+    }).catch(() => {});
+
+    updateIdea(id, { status: "converted", convertedFeatureId: newFeatureId });
+
+    return newFeature;
+  };
+
   // TEAM MEMBER ACTIONS
   const addTeamMember = (memberData: Omit<TeamMember, "id" | "joinedAt">): TeamMember => {
     const newMember: TeamMember = {
@@ -1444,6 +1647,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       teamMembers,
       invitations,
       contentItems,
+      ideas,
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(payload, null, 2));
     const downloadAnchor = document.createElement("a");
@@ -1467,6 +1671,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       if (data.teamMembers && Array.isArray(data.teamMembers)) setTeamMembers(data.teamMembers);
       if (data.invitations && Array.isArray(data.invitations)) setInvitations(data.invitations);
       if (data.contentItems && Array.isArray(data.contentItems)) setContentItems(data.contentItems);
+      if (data.ideas && Array.isArray(data.ideas)) setIdeas(data.ideas);
       return true;
     } catch (e) {
       console.error("Failed to import JSON data:", e);
@@ -1483,6 +1688,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       setTeamMembers(initialTeamMembers);
       setInvitations(initialInvitations);
       setContentItems(initialContentItems);
+      setIdeas(initialIdeas);
       setSelectedProjectId("proj-prowasp");
       setCurrentUser(initialTeamMembers[0]);
       localStorage.removeItem(STORAGE_KEY);
@@ -1533,6 +1739,11 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       (c) => c.isArchived || c.status === "public" || c.status === "live"
     ).length;
 
+    const totalIdeasCount = ideas.length;
+    const brainstormingIdeasCount = ideas.filter(
+      (i) => i.status === "brainstorming" || i.status === "under_review"
+    ).length;
+
     return {
       totalFeatures,
       totalProjects,
@@ -1546,8 +1757,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       adsActiveCount,
       contentOverdueCount,
       achievedContentCount,
+      totalIdeasCount,
+      brainstormingIdeasCount,
     };
-  }, [features, projects, tasks, fixes, invitations, contentItems, currentUser]);
+  }, [features, projects, tasks, fixes, invitations, contentItems, ideas, currentUser]);
 
   return (
     <TaskStoreContext.Provider
@@ -1576,6 +1789,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         fixes,
         teamMembers,
         contentItems,
+        ideas,
         addFeature,
         updateFeature,
         deleteFeature,
@@ -1608,6 +1822,12 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
         deleteContentItem,
         moveContentStatus,
         archiveContentItem,
+        addIdea,
+        updateIdea,
+        deleteIdea,
+        upvoteIdea,
+        addIdeaRemark,
+        convertIdeaToFeature,
         addTeamMember,
         updateTeamMember,
         deleteTeamMember,

@@ -33,13 +33,15 @@ import { TeamOverviewView } from "@/components/TeamOverviewView";
 import { MyTasksView } from "@/components/MyTasksView";
 import { TeamMembersView } from "@/components/TeamMembersView";
 import { ContentManagerView } from "@/components/ContentManagerView";
+import { IdeaPlaygroundView } from "@/components/IdeaPlaygroundView";
 import { TaskModal } from "@/components/TaskModal";
 import { ProjectModal } from "@/components/ProjectModal";
 import { FeatureModal } from "@/components/FeatureModal";
 import { FixModal } from "@/components/FixModal";
 import { ContentModal } from "@/components/ContentModal";
+import { IdeaModal } from "@/components/IdeaModal";
 import { useTaskStore } from "@/lib/store";
-import { ProjectTask, OngoingProject, UpcomingFeature, FixUpdate, ContentItem, ContentType } from "@/lib/types";
+import { ProjectTask, OngoingProject, UpcomingFeature, FixUpdate, ContentItem, ContentType, Idea } from "@/lib/types";
 import LoginPage from "./login/page";
 
 export default function HomePage() {
@@ -65,6 +67,9 @@ export default function HomePage() {
   const [contentModalOpen, setContentModalOpen] = useState(false);
   const [contentToEdit, setContentToEdit] = useState<ContentItem | null>(null);
   const [contentModalInitialType, setContentModalInitialType] = useState<ContentType>("organic");
+
+  const [ideaModalOpen, setIdeaModalOpen] = useState(false);
+  const [ideaToEdit, setIdeaToEdit] = useState<Idea | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -159,6 +164,17 @@ export default function HomePage() {
     setContentModalOpen(true);
   };
 
+  // Idea Modal Handlers
+  const handleOpenAddIdea = () => {
+    setIdeaToEdit(null);
+    setIdeaModalOpen(true);
+  };
+
+  const handleOpenEditIdea = (idea: Idea) => {
+    setIdeaToEdit(idea);
+    setIdeaModalOpen(true);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       {/* Top Header */}
@@ -219,6 +235,13 @@ export default function HomePage() {
             />
           )}
 
+          {activeTab === "ideas" && (
+            <IdeaPlaygroundView
+              onOpenAddModal={handleOpenAddIdea}
+              onOpenEditModal={handleOpenEditIdea}
+            />
+          )}
+
           {activeTab === "members" && <TeamMembersView />}
         </main>
       </div>
@@ -255,6 +278,12 @@ export default function HomePage() {
         onClose={() => setContentModalOpen(false)}
         contentToEdit={contentToEdit}
         initialType={contentModalInitialType}
+      />
+
+      <IdeaModal
+        isOpen={ideaModalOpen}
+        onClose={() => setIdeaModalOpen(false)}
+        ideaToEdit={ideaToEdit}
       />
     </div>
   );

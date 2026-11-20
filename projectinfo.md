@@ -15,6 +15,7 @@
    - [Module 2: New Upcoming Features](#module-2-new-upcoming-features)
    - [Module 3: Fix & Updates (Bug Tracking & Patch Logs)](#module-3-fix--updates-bug-tracking--patch-logs)
    - [Module 8: Content Manager (Organic Videos & Paid Ads Engine)](#module-8-content-manager-organic-videos--paid-ads-engine)
+   - [Module 9: Idea Playground (Community Brainstorming & Remarks Hub)](#module-9-idea-playground-community-brainstorming--remarks-hub)
 5. [State Management & Data Persistence](#5-state-management--data-persistence)
 6. [Unique Port & Network Deployment](#6-unique-port--network-deployment)
 7. [Developer Guidelines & File Header/Footer Standards](#7-developer-guidelines--file-headerfooter-standards)
@@ -218,6 +219,18 @@ Team And Task Manager/
   - **Paid Ads Manager**: Ad Spend (₹/$), Impressions, Link Clicks, Conversions / Leads, ROAS, CPC, and campaign angle notes.
 - **Attributes**: `id`, `type` (`organic` | `ad`), `title`, `description`, `startDate`, `endDate`, `status`, `platform`, `assignee`, `assigneeEmail`, `scriptUrl`, `scriptAttachment` (`name`, `url`, `type`, `size`, `format`), `stats` (`views`, `likes`, `comments`, `clicks`, `spend`, `conversions`, `roas`, `cpc`, `impressions`, `customNotes`, `updatedAt`), `rawFootageUrl`, `publishedUrl`, `notes`, `isArchived`, `createdAt`, `updatedAt`, `completedAt`.
 
+### Module 9: Idea Playground (Community Brainstorming & Remarks Hub)
+- **Purpose**: Open collaborative workspace where ANY team member on the platform can post ideas, attach constructive remarks, upvote standout concepts, and promote approved brainstorms directly into the Upcoming Features roadmap.
+- **Placement**: Directly after **"My Tasks"** in the master sidebar navigation (`Team Overview` ➔ `Ongoing Projects` ➔ `Upcoming Features` ➔ `Fix & Updates` ➔ `Content Manager` ➔ `My Tasks` ➔ `Idea Playground` ➔ `Team Members`).
+- **Core Functionality**:
+  1. **Open Submission**: Anyone on the platform can post ideas (`IdeaModal.tsx`) with Title, Category, Description, Initial Remark, and Tags.
+  2. **Collaborative Remarks Thread**: Teammates can post remarks, feedback, and notes on any idea in real-time.
+  3. **Community Upvotes**: 1-click upvote with live counts to surface trending concepts.
+  4. **Roadmap Bridge**: 1-click execution to convert an approved idea into an official Upcoming Feature on the roadmap (`convertIdeaToFeature`).
+  5. **Category Taxonomy**: `Product`, `Automation`, `Growth`, `Marketing`, `UI/UX`, `Internal Tool`, `Other`.
+  6. **Lifecycle States**: `Brainstorming` ➔ `Under Review` ➔ `Approved / Planned` ➔ `Converted to Feature` (or `Archived`).
+- **Attributes**: `id`, `title`, `description`, `category`, `status`, `initialRemark`, `author` (`name`, `avatar`, `email`, `role`), `upvotes[]`, `remarks[]` (`id`, `authorName`, `authorAvatar`, `authorEmail`, `text`, `createdAt`), `tags[]`, `convertedFeatureId`, `createdAt`, `updatedAt`.
+
 ---
 
 ## 5. State Management & Full Database Persistence
@@ -230,12 +243,13 @@ Team And Task Manager/
      - `GET / POST / PUT / DELETE /api/features`: Full upcoming features database operations (lifecycle phases, research points, document attachments, team votes).
      - `GET / POST / PUT / DELETE /api/fixes`: Full bug triage and platform updates operations (severity triage, root cause notes, changelog deployment stamps).
      - `GET / POST / PUT / DELETE /api/content`: Full Content Manager operations (organic videos, paid ads, 6-stage lifecycles, resource links).
+     - `GET / POST / PUT / DELETE /api/ideas`: Full Idea Playground operations (ideas submission, upvote toggling, remarks discussion, status conversion).
      - `GET / POST / PUT /api/invitations`: Gmail invite dispatch and approval workflow.
      - `GET / POST / PUT / DELETE /api/team`: Admin team member provisioning.
      - `GET / POST /api/sync`: Two-way cloud migration, batch upsert, and explicit deletion purge across all collections.
   2. **Client State & Offline Engine**: React Context API (`lib/store.tsx`) paired with `localStorage` for instant zero-latency UI interactions with seamless background MongoDB syncing:
      - **Intelligent Two-Way Reconciliation**: On mount, state hydrates from `localStorage` immediately, then checks `/api/sync`. Any local items created offline are automatically synchronized to MongoDB rather than wiped out, and server updates are merged cleanly.
-     - **Immediate Deletion Guarantees**: Deletions for projects, tasks, features, fixes, and content items immediately dispatch HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
+     - **Immediate Deletion Guarantees**: Deletions for projects, tasks, features, fixes, content items, and ideas immediately dispatch HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
 - **Storage Keys**:
   - Database Cache: `proaffiliaters_team_task_manager_v3`
   - Active Session: `proaffiliaters_session_user_v3`
