@@ -285,14 +285,9 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
           className="hidden sm:flex items-center gap-2.5 px-3.5 py-1.5 rounded-full border border-border bg-card/90 backdrop-blur-xs text-foreground shadow-xs select-none hover:border-primary/40 transition-colors"
           title={`${completedTasksCount} of ${totalTasksCount} tasks completed (${progressPercent}%)`}
         >
-          <div className="flex items-center gap-1.5">
-            <span className="text-xs font-bold font-mono tracking-tight text-foreground">
-              {progressPercent}%
-            </span>
-            <span className="text-[10px] text-muted-foreground font-medium hidden md:inline">
-              ({completedTasksCount}/{totalTasksCount})
-            </span>
-          </div>
+          <span className="text-xs font-bold font-mono tracking-tight text-foreground">
+            {progressPercent}%
+          </span>
 
           <div className="w-16 sm:w-20 md:w-24 h-2 rounded-full bg-muted/80 dark:bg-muted overflow-hidden border border-border/40">
             <div
