@@ -56,7 +56,7 @@ Team And Task Manager/
 │   ├── layout.tsx                 # Root layout with Manrope & DM Sans fonts
 │   └── page.tsx                   # Main dashboard view switching between 6 core categories
 ├── components/
-│   ├── Header.tsx                 # 76px Figma header with search, cross-category matches, Done chip, and invitations
+│   ├── Header.tsx                 # 76px Figma header with search, cross-category matches, completion percentage progress bar, and invitations
 │   ├── Sidebar.tsx                # 260px Figma sidebar with 6 navigation tabs, active project dots, and admin portal
 │   ├── OngoingProjectsView.tsx    # Initiatives Hub (Tier 1) and Dedicated Project Workspace (Tier 2)
 │   ├── UpcomingFeaturesView.tsx   # Category 1: Brainstorming & voting upcoming features with 4 roadmap stats
