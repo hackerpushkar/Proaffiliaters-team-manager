@@ -20,6 +20,7 @@
  */
 
 import { NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectToDatabase } from "@/lib/mongodb";
 import { FeatureModel } from "@/models/Feature";
 
@@ -142,28 +143,36 @@ export async function PUT(req: Request) {
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
-    const id = searchParams.get("id");
+    let id = searchParams.get("id");
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        id = body.id;
+      } catch {
+        // Body might not be JSON or empty
+      }
+    }
 
     if (!id) {
       return NextResponse.json(
-        { success: false, message: "Feature ID query param is required" },
+        { success: false, message: "Feature ID query param or JSON body id is required" },
         { status: 400 }
       );
     }
 
     await connectToDatabase();
-    const deleted = await FeatureModel.findOneAndDelete({ id });
+    // Match either by custom string ID or MongoDB _id if valid ObjectId
+    const query = mongoose.isValidObjectId(id)
+      ? { $or: [{ id }, { _id: id }] }
+      : { id };
 
-    if (!deleted) {
-      return NextResponse.json(
-        { success: false, message: "Feature not found or already deleted" },
-        { status: 404 }
-      );
-    }
+    const deleted = await FeatureModel.findOneAndDelete(query);
 
     return NextResponse.json({
       success: true,
       message: `Feature ${id} permanently removed from database`,
+      deleted: !!deleted,
     });
   } catch (error: any) {
     return NextResponse.json(

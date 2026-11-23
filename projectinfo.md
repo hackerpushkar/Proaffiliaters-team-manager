@@ -250,8 +250,8 @@ Team And Task Manager/
      - `GET / POST / PUT / DELETE /api/team`: Admin team member provisioning.
      - `GET / POST /api/sync`: Two-way cloud migration, batch upsert, and explicit deletion purge across all collections.
   2. **Client State & Offline Engine**: React Context API (`lib/store.tsx`) paired with `localStorage` for instant zero-latency UI interactions with seamless background MongoDB syncing:
-     - **Intelligent Two-Way Reconciliation**: On mount, state hydrates from `localStorage` immediately, then checks `/api/sync`. Any local items created offline are automatically synchronized to MongoDB rather than wiped out, and server updates are merged cleanly.
-     - **Immediate Deletion Guarantees**: Deletions for projects, tasks, features, fixes, content items, and ideas immediately dispatch HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
+     - **Authoritative Server Snapshot & Anti-Resurrection Engine**: On mount, state hydrates from `localStorage` immediately, then checks `/api/sync`. Server snapshots are treated as the single source of truth. Features and other items missing from MongoDB are never erroneously re-POSTed. A local Tombstone Deletion Registry (`proaffiliaters_deleted_ids_v2`) guarantees that deleted items can never be resurrected across reloads, multiple tabs, or devices.
+     - **Immediate & Synchronous Deletion Guarantees**: Deletions for projects, tasks, features, fixes, content items, and ideas immediately mark the item as deleted in the tombstone registry, purge from `localStorage` synchronously, and dispatch resilient HTTP `DELETE` queries to MongoDB, eliminating ghost resurrection bugs.
 - **Storage Keys**:
   - Database Cache: `proaffiliaters_team_task_manager_v3`
   - Active Session: `proaffiliaters_session_user_v3`

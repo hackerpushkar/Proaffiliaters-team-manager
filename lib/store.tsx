@@ -181,6 +181,51 @@ interface TaskStoreContextType {
 
 const TaskStoreContext = createContext<TaskStoreContextType | null>(null);
 
+// Tombstone deletion registry to guarantee deleted items are never resurrected
+const DELETED_IDS_KEY = "proaffiliaters_deleted_ids_v2";
+
+interface DeletedIdsMap {
+  features: string[];
+  fixes: string[];
+  projects: string[];
+  tasks: string[];
+  contentItems: string[];
+  ideas: string[];
+}
+
+function getDeletedIds(): DeletedIdsMap {
+  if (typeof window === "undefined") return { features: [], fixes: [], projects: [], tasks: [], contentItems: [], ideas: [] };
+  try {
+    const raw = localStorage.getItem(DELETED_IDS_KEY);
+    return raw ? JSON.parse(raw) : { features: [], fixes: [], projects: [], tasks: [], contentItems: [], ideas: [] };
+  } catch {
+    return { features: [], fixes: [], projects: [], tasks: [], contentItems: [], ideas: [] };
+  }
+}
+
+function markIdDeleted(type: keyof DeletedIdsMap, id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getDeletedIds();
+    if (!current[type]) current[type] = [];
+    if (!current[type].includes(id)) {
+      current[type].push(id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(current));
+    }
+  } catch {}
+}
+
+function unmarkIdDeleted(type: keyof DeletedIdsMap, id: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const current = getDeletedIds();
+    if (current[type] && current[type].includes(id)) {
+      current[type] = current[type].filter((item) => item !== id);
+      localStorage.setItem(DELETED_IDS_KEY, JSON.stringify(current));
+    }
+  } catch {}
+}
+
 // Helpers to safely read stored client data before initial render
 function getStoredData() {
   if (typeof window === "undefined") return null;
@@ -218,7 +263,9 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   // Core Collections - lazy initialized directly from localStorage if user data exists
   const [features, setFeatures] = useState<UpcomingFeature[]>(() => {
     const d = getStoredData();
-    return d && Array.isArray(d.features) ? d.features : initialFeatures;
+    const deleted = new Set(getDeletedIds().features);
+    const rawList = d && Array.isArray(d.features) ? d.features : initialFeatures;
+    return rawList.filter((f: UpcomingFeature) => !deleted.has(f.id));
   });
   const [projects, setProjects] = useState<OngoingProject[]>(() => {
     const d = getStoredData();
@@ -268,7 +315,10 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       if (stored) {
         try {
           localData = JSON.parse(stored);
-          if (localData.features && Array.isArray(localData.features)) setFeatures(localData.features);
+          const deleted = new Set(getDeletedIds().features);
+          if (localData.features && Array.isArray(localData.features)) {
+            setFeatures(localData.features.filter((f: any) => !deleted.has(f.id)));
+          }
           if (localData.projects && Array.isArray(localData.projects)) setProjects(localData.projects);
           if (localData.tasks && Array.isArray(localData.tasks)) setTasks(localData.tasks);
           if (localData.fixes && Array.isArray(localData.fixes)) setFixes(localData.fixes);
@@ -288,34 +338,22 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
           if (data && data.success && data.data) {
             const db = data.data;
 
-            // Reconcile Features: preserve unsynced local items & adopt server snapshot
+            // Reconcile Features: MongoDB server snapshot is authoritative
             if (Array.isArray(db.features)) {
-              if (db.features.length > 0) {
-                if (localData?.features && Array.isArray(localData.features)) {
-                  const dbIds = new Set(db.features.map((f: any) => f.id));
-                  const unsynced = localData.features.filter((f: any) => !dbIds.has(f.id));
-                  if (unsynced.length > 0) {
-                    unsynced.forEach((f: any) => {
-                      fetch("/api/features", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(f),
-                      }).catch(() => {});
-                    });
-                    setFeatures([...unsynced, ...db.features]);
-                  } else {
-                    setFeatures(db.features);
-                  }
-                } else {
-                  setFeatures(db.features);
-                }
-              } else if (localData?.features && localData.features.length > 0) {
-                fetch("/api/sync", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ features: localData.features }),
-                }).catch(() => {});
+              const deleted = new Set(getDeletedIds().features);
+              // Clean any zombies from MongoDB if they were marked deleted locally
+              const zombies = db.features.filter((f: any) => deleted.has(f.id));
+              if (zombies.length > 0) {
+                zombies.forEach((zf: any) => {
+                  fetch(`/api/features?id=${encodeURIComponent(zf.id)}`, {
+                    method: "DELETE",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ id: zf.id }),
+                  }).catch(() => {});
+                });
               }
+              const cleanFeatures = db.features.filter((f: any) => !deleted.has(f.id));
+              setFeatures(cleanFeatures);
             }
 
             // Reconcile Fixes & Updates: guarantee newly added fixes are never overwritten
@@ -725,6 +763,7 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
       hasVoted: true,
       createdAt: new Date().toISOString().split("T")[0],
     };
+    unmarkIdDeleted("features", newFeat.id);
     setFeatures((prev) => [newFeat, ...prev]);
 
     // Persist immediately to MongoDB
@@ -749,11 +788,28 @@ export function TaskProvider({ children }: { children: React.ReactNode }) {
   };
 
   const deleteFeature = (id: string) => {
+    markIdDeleted("features", id);
     setFeatures((prev) => prev.filter((f) => f.id !== id));
 
-    // Permanently purge from MongoDB
-    fetch(`/api/features?id=${id}`, {
+    // Synchronously purge from localStorage to eliminate reload race conditions
+    if (typeof window !== "undefined") {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed.features)) {
+            parsed.features = parsed.features.filter((f: any) => f.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+          }
+        }
+      } catch {}
+    }
+
+    // Permanently purge from MongoDB (support both query param & JSON body)
+    fetch(`/api/features?id=${encodeURIComponent(id)}`, {
       method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
     }).catch(() => {});
   };
 
@@ -1840,6 +1896,8 @@ export function useTaskStore() {
  *   and Content Items (/api/content) are dispatched immediately to MongoDB.
  * - Deletion Guarantees: Deletions dispatch real-time HTTP DELETE queries to
  *   purge records from MongoDB, preventing ghost resurrection on reload.
+ * - Anti-Resurrection Engine: Employs DELETED_IDS_KEY tombstone registry and
+ *   authoritative MongoDB sync to prevent deleted features or entities from resurrecting.
  * - Content Manager: Dual Organic & Ads pipeline lifecycle with deadline tracking.
  * - Authentication: Stores session in localStorage; supports fallback when offline.
  * - Invitations: Updates project.teamMemberEmails upon invite acceptance.
